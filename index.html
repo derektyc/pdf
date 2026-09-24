@@ -6,7 +6,6 @@
 <title>DTYC PDF — Private PDF Toolkit</title>
 <meta name="description" content="A fast, privacy-first PDF toolkit that runs in your browser.">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.min.mjs" type="module"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
@@ -423,14 +422,20 @@ if(window.pdfjsLib){
 async function initPdfEditor(){
   try{
     editPdfBytes=await files[0].arrayBuffer();
-    editPdfJsDoc=await pdfjsLib.getDocument({data:editPdfBytes.slice(0)}).promise;
+    const pdfData = new Uint8Array(editPdfBytes.slice(0));
+    editPdfJsDoc=await pdfjsLib.getDocument({
+      data: pdfData,
+      disableWorker: true
+    }).promise;
     editPage=1; editAnnotations={}; editImagePending=null;
     document.getElementById('pdfEditor').classList.add('show');
     setEditMode('select');
     await renderEditPage();
     document.getElementById('pdfEditor').scrollIntoView({behavior:'smooth',block:'start'});
   }catch(e){
-    console.error(e); setStatus('Could not open this PDF in the visual editor.','err');
+    console.error('PDF editor load error:', e);
+    const detail = e && e.message ? ' — ' + e.message : '';
+    setStatus('Could not open this PDF in the visual editor' + detail,'err');
   }
 }
 async function renderEditPage(){
@@ -548,7 +553,7 @@ async function exportEditedPDF(){
   if(!editPdfBytes)return;
   try{
     setStatus('Applying edits to a new PDF…');
-    const doc=await PDFDocument.load(editPdfBytes.slice(0));
+    const doc=await PDFDocument.load(new Uint8Array(editPdfBytes.slice(0)));
     const font=await doc.embedFont(StandardFonts.Helvetica);
     for(let pNum=1;pNum<=doc.getPageCount();pNum++){
       const anns=editAnnotations[pNum]||[]; if(!anns.length)continue;
