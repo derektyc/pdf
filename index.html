@@ -536,6 +536,7 @@ body.tool-active #pageOrganizer.show,body.tool-active #pdfEditor.show{margin-top
 const { PDFDocument, degrees, rgb, StandardFonts } = PDFLib;
 let activeTool = null;
 let files = [];
+let duplexSlots = {front:null,back:null};
 let activeCat = 'all';
 
 const toolInfo = {
@@ -550,7 +551,7 @@ const toolInfo = {
   remove:{name:'Remove Pages',desc:'Enter pages to delete, such as 2,4-6.',accept:'.pdf',multi:false},
   watermark:{name:'Text Watermark',desc:'Add a centered watermark to every page.',accept:'.pdf',multi:false},
   inspect:{name:'PDF Inspector',desc:'Read basic file and PDF metadata without changing the file.',accept:'.pdf',multi:false},
-  editor:{name:'Edit PDF',desc:'Edit every page in one continuous scroll. Add text, images, shapes and freehand drawing.',accept:'.pdf',multi:false},
+  editor:{name:'Edit PDF',desc:'Edit visually with text, images, highlights, drawing and shapes. Use page thumbnails and simple controls to work through the document.',accept:'.pdf',multi:false},
   compress:{name:'Smart Compress',desc:'Reduce PDF size. Stronger settings create smaller files but may reduce visual quality.',accept:'.pdf',multi:false},
   wordconvert:{name:'PDF ↔ Word',desc:'Upload a PDF to create an editable DOCX, or upload a DOCX to create a PDF.',accept:'.pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document',multi:false}
 };
@@ -582,6 +583,7 @@ function filterTools(){
 }
 function openTool(id){
   activeTool=id; files=[];
+  duplexSlots={front:null,back:null};
   document.body.classList.add('tool-active');
   document.body.classList.remove('has-files');
   document.querySelectorAll('.card').forEach(card=>{
@@ -606,13 +608,13 @@ function openTool(id){
 function planned(name){alert(name+' is reserved for the next build. This feature needs a heavier browser engine or a small backend for reliable results.')}
 function pickFiles(){
   const input=document.getElementById('fileInput');
-  if(activeTool==='duplexscan' && files.length>=2){
+  if(activeTool==='duplexscan' && duplexSlots.front && duplexSlots.back){
     alert('Both scan slots are filled. Remove one file or use Swap front / back PDFs.');
     return;
   }
   input.value='';
   if(activeTool==='duplexscan'){
-    document.getElementById('pickBtn').textContent=files.length===0?'Select FRONT scan':'Select BACK scan';
+    document.getElementById('pickBtn').textContent=!duplexSlots.front?'Select FRONT scan':'Select BACK scan';
   }
   input.click();
 }
@@ -636,8 +638,10 @@ function addFiles(incoming){
   const valid=incoming.filter(f=>fileMatchesTool(f,t));
   if(activeTool==='duplexscan'){
     if(!valid.length)return setStatus('Please choose a PDF file.','err');
-    if(files.length>=2)return setStatus('Both duplex scan slots are already filled.','err');
-    files.push(valid[0]);
+    if(!duplexSlots.front)duplexSlots.front=valid[0];
+    else if(!duplexSlots.back)duplexSlots.back=valid[0];
+    else return setStatus('Both duplex scan slots are already filled.','err');
+    files=[duplexSlots.front,duplexSlots.back].filter(Boolean);
   }else{
     files=t.multi?[...files,...valid]:valid.slice(0,1);
   }
@@ -645,11 +649,19 @@ function addFiles(incoming){
   if(activeTool==='editor' && files.length) initPdfEditor();
   if(activeTool==='organize' && files.length) initPageOrganizer();
   if(activeTool==='duplexscan'){
-    document.getElementById('pickBtn').textContent=files.length===0?'Select FRONT scan':files.length===1?'Select BACK scan':'Scans ready';
-    if(files.length===2)setTimeout(updateDuplexPreview,0);
+    document.getElementById('pickBtn').textContent=!duplexSlots.front?'Select FRONT scan':!duplexSlots.back?'Select BACK scan':'Scans ready';
+    if(duplexSlots.front&&duplexSlots.back)setTimeout(updateDuplexPreview,0);
   }
 }
 function removeFile(i){
+  if(activeTool==='duplexscan'){
+    if(i===0)duplexSlots.front=null;
+    else if(i===1)duplexSlots.back=null;
+    files=[duplexSlots.front,duplexSlots.back].filter(Boolean);
+    renderFiles();renderControls();
+    document.getElementById('pickBtn').textContent=!duplexSlots.front?'Select FRONT scan':!duplexSlots.back?'Select BACK scan':'Scans ready';
+    return;
+  }
   files.splice(i,1);
   renderFiles();
   if(activeTool==='organize'){
@@ -659,6 +671,7 @@ function removeFile(i){
 }
 function clearFiles(){
   files=[];
+  duplexSlots={front:null,back:null};
   document.body.classList.remove('has-files');
   document.getElementById('fileInput').value='';
   renderFiles();
@@ -675,11 +688,15 @@ function size(n){if(n<1024)return n+' B';if(n<1048576)return(n/1024).toFixed(1)+
 function renderFiles(){
   document.body.classList.toggle('has-files',files.length>0);
   const el=document.getElementById('fileList');
+  if(activeTool==='duplexscan'){
+    const rows=[];
+    if(duplexSlots.front)rows.push(`<div class="file-row"><div class="file-meta"><strong><span style="color:var(--brand);font-size:10px;letter-spacing:.06em">FRONT-SIDE SCAN</span><br>${escapeHtml(duplexSlots.front.name)}</strong><span>${size(duplexSlots.front.size)}</span></div><button onclick="removeFile(0)">Remove</button></div>`);
+    if(duplexSlots.back)rows.push(`<div class="file-row"><div class="file-meta"><strong><span style="color:var(--brand);font-size:10px;letter-spacing:.06em">BACK-SIDE SCAN</span><br>${escapeHtml(duplexSlots.back.name)}</strong><span>${size(duplexSlots.back.size)}</span></div><button onclick="removeFile(1)">Remove</button></div>`);
+    el.innerHTML=rows.length?rows.join(''):'<div class="file-row"><div class="file-meta"><strong>No scans selected</strong><span>Select the front-side scan first.</span></div></div>';
+    return;
+  }
   if(!files.length){el.innerHTML='<div class="file-row"><div class="file-meta"><strong>No files selected</strong><span>Add file(s) above to continue.</span></div></div>';return}
-  el.innerHTML=files.map((f,i)=>{
-    const role=activeTool==='duplexscan'?(i===0?'FRONT-SIDE SCAN':i===1?'BACK-SIDE SCAN':'EXTRA FILE'):'';
-    return `<div class="file-row"><div class="file-meta"><strong>${role?'<span style="color:var(--brand);font-size:10px;letter-spacing:.06em">'+role+'</span><br>':''}${escapeHtml(f.name)}</strong><span>${size(f.size)}</span></div><button onclick="removeFile(${i})">Remove</button></div>`;
-  }).join('');
+  el.innerHTML=files.map((f,i)=>`<div class="file-row"><div class="file-meta"><strong>${escapeHtml(f.name)}</strong><span>${size(f.size)}</span></div><button onclick="removeFile(${i})">Remove</button></div>`).join('');
 }
 function renderControls(){
   const c=document.getElementById('toolControls');
@@ -691,7 +708,7 @@ function renderControls(){
   if(activeTool==='numbers') extra='<label class="field">Start at <input id="startNo" type="number" value="1" min="1"></label>';
   if(activeTool==='watermark') extra='<label class="field">Text <input id="wmText" value="CONFIDENTIAL"></label><label class="field">Opacity <input id="opacity" type="number" value="0.18" min="0.05" max="1" step="0.05"></label>';
   if(activeTool==='duplexscan'){
-    const front=files[0],back=files[1];
+    const front=duplexSlots.front,back=duplexSlots.back;
     c.innerHTML=`
       <div class="duplex-guide">
         <div class="duplex-slot">
@@ -720,12 +737,12 @@ function renderControls(){
         </select>
       </label>
       <button class="secondary" onclick="swapDuplexFiles()">⇄ Swap front / back</button>
-      <button class="primary" onclick="processTool()" ${files.length===2?'':'disabled'}>Arrange & Download</button>
+      <button class="primary" onclick="processTool()" ${front&&back?'':'disabled'}>Arrange & Download</button>
       <div id="duplexPreview" class="duplex-preview">
         <strong>Output preview</strong>
-        <p>${files.length===2?'Checking page order…':'Add both PDFs to preview the final sequence.'}</p>
+        <p>${front&&back?'Checking page order…':'Add both PDFs to preview the final sequence.'}</p>
       </div>`;
-    if(files.length===2)setTimeout(updateDuplexPreview,0);
+    if(front&&back)setTimeout(updateDuplexPreview,0);
     return;
   }
   if(activeTool==='organize'){
@@ -791,17 +808,18 @@ async function processTool(){
   }catch(e){console.error(e);setStatus(e.message||'Something went wrong.','err')}
 }
 function swapDuplexFiles(){
-  if(files.length<2)return alert('Add the front-side PDF and back-side PDF first.');
-  [files[0],files[1]]=[files[1],files[0]];
+  if(!duplexSlots.front||!duplexSlots.back)return alert('Add the front-side PDF and back-side PDF first.');
+  [duplexSlots.front,duplexSlots.back]=[duplexSlots.back,duplexSlots.front];
+  files=[duplexSlots.front,duplexSlots.back];
   renderFiles();
   renderControls();
   setTimeout(updateDuplexPreview,0);
 }
 
 async function getDuplexPlan(){
-  if(files.length!==2)return null;
-  const front=await PDFDocument.load(await files[0].arrayBuffer());
-  const back=await PDFDocument.load(await files[1].arrayBuffer());
+  if(!duplexSlots.front||!duplexSlots.back)return null;
+  const front=await PDFDocument.load(await duplexSlots.front.arrayBuffer());
+  const back=await PDFDocument.load(await duplexSlots.back.arrayBuffer());
   const frontCount=front.getPageCount(),backCount=back.getPageCount();
   const reverseBack=(document.getElementById('duplexBackOrder')?.value||'reverse')==='reverse';
   const frontIndices=front.getPageIndices();
@@ -818,7 +836,7 @@ async function getDuplexPlan(){
 
 async function updateDuplexPreview(){
   const box=document.getElementById('duplexPreview');
-  if(!box||files.length!==2)return;
+  if(!box||!duplexSlots.front||!duplexSlots.back)return;
   try{
     box.innerHTML='<strong>Output preview</strong><p>Checking page order…</p>';
     const plan=await getDuplexPlan();
@@ -834,10 +852,10 @@ async function updateDuplexPreview(){
 }
 
 async function arrangeDuplexScans(){
-  if(files.length!==2)throw new Error('Please add exactly two PDFs: the front-side scan first and the back-side scan second.');
+  if(!duplexSlots.front||!duplexSlots.back)throw new Error('Please add both PDFs: the front-side scan and the back-side scan.');
 
-  const front=await PDFDocument.load(await files[0].arrayBuffer());
-  const back=await PDFDocument.load(await files[1].arrayBuffer());
+  const front=await PDFDocument.load(await duplexSlots.front.arrayBuffer());
+  const back=await PDFDocument.load(await duplexSlots.back.arrayBuffer());
   const frontCount=front.getPageCount(),backCount=back.getPageCount();
 
   if(Math.abs(frontCount-backCount)>1){
@@ -871,7 +889,7 @@ async function arrangeDuplexScans(){
     }
   }
 
-  const frontBase=files[0].name.replace(/\.pdf$/i,'');
+  const frontBase=duplexSlots.front.name.replace(/\.pdf$/i,'');
   download(await out.save(),frontBase+'-duplex-arranged.pdf');
   setStatus(`Duplex PDF created: ${out.getPageCount()} pages arranged front/back in sequence.`,'ok');
 }
