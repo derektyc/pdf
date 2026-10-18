@@ -630,9 +630,9 @@ async function tiffToPDF(){
     const buf=await f.arrayBuffer();
     const ifds=UTIF.decode(buf);
     if(!ifds.length) throw new Error('No TIFF pages were found in '+f.name+'.');
-    UTIF.decodeImages(buf,ifds);
 
     for(const ifd of ifds){
+      UTIF.decodeImage(buf,ifd);
       const rgba=UTIF.toRGBA8(ifd);
       const canvas=document.createElement('canvas');
       canvas.width=ifd.width;canvas.height=ifd.height;
