@@ -201,6 +201,9 @@ body{
     <article class="card" data-cat="organize" data-name="merge pdf combine">
       <span class="tag">WORKS NOW</span><div class="icon">🧩</div><h3>Merge PDF</h3><p>Combine multiple PDF files in the order you select.</p><button onclick="openTool('merge')">Open tool →</button>
     </article>
+    <article class="card" data-cat="organize" data-name="duplex scan auto arrange feeder front back interleave pages">
+      <span class="tag">NEW · V5</span><div class="icon">📚</div><h3>Duplex Scan Arranger</h3><p>Combine separate front-side and back-side feeder scans into one correctly ordered PDF.</p><button onclick="openTool('duplexscan')">Open tool →</button>
+    </article>
     <article class="card" data-cat="organize" data-name="organize pdf pages reorder rotate delete extract thumbnails">
       <span class="tag">NEW · V5</span><div class="icon">🗂️</div><h3>Organize Pages</h3><p>Preview every page, drag to reorder, rotate, delete or extract selected pages.</p><button onclick="openTool('organize')">Open tool →</button>
     </article>
@@ -345,6 +348,7 @@ let activeCat = 'all';
 
 const toolInfo = {
   merge:{name:'Merge PDF',desc:'Add two or more PDFs. They will be combined in the order shown.',accept:'.pdf',multi:true},
+  duplexscan:{name:'Duplex Scan Arranger',desc:'Add exactly two PDFs: first the FRONT-side scan, then the BACK-side scan. The default setting reverses the second PDF and interleaves the pages automatically.',accept:'.pdf',multi:true},
   organize:{name:'Organize Pages',desc:'Preview every page, drag to reorder, select pages to rotate/delete/extract, then save a new PDF.',accept:'.pdf',multi:false},
   extract:{name:'Split / Extract Pages',desc:'Enter pages like 1-3,5,8 to create a new PDF.',accept:'.pdf',multi:false},
   rotate:{name:'Rotate PDF',desc:'Rotate every page of one PDF.',accept:'.pdf',multi:false},
@@ -434,7 +438,10 @@ function size(n){if(n<1024)return n+' B';if(n<1048576)return(n/1024).toFixed(1)+
 function renderFiles(){
   const el=document.getElementById('fileList');
   if(!files.length){el.innerHTML='<div class="file-row"><div class="file-meta"><strong>No files selected</strong><span>Add file(s) above to continue.</span></div></div>';return}
-  el.innerHTML=files.map((f,i)=>`<div class="file-row"><div class="file-meta"><strong>${escapeHtml(f.name)}</strong><span>${size(f.size)}</span></div><button onclick="removeFile(${i})">Remove</button></div>`).join('');
+  el.innerHTML=files.map((f,i)=>{
+    const role=activeTool==='duplexscan'?(i===0?'FRONT-SIDE SCAN':i===1?'BACK-SIDE SCAN':'EXTRA FILE'):'';
+    return `<div class="file-row"><div class="file-meta"><strong>${role?'<span style="color:var(--brand);font-size:10px;letter-spacing:.06em">'+role+'</span><br>':''}${escapeHtml(f.name)}</strong><span>${size(f.size)}</span></div><button onclick="removeFile(${i})">Remove</button></div>`;
+  }).join('');
 }
 function renderControls(){
   const c=document.getElementById('toolControls');
@@ -445,6 +452,25 @@ function renderControls(){
   if(activeTool==='rotate') extra='<label class="field">Rotation <select id="angle"><option>90</option><option>180</option><option>270</option></select></label>';
   if(activeTool==='numbers') extra='<label class="field">Start at <input id="startNo" type="number" value="1" min="1"></label>';
   if(activeTool==='watermark') extra='<label class="field">Text <input id="wmText" value="CONFIDENTIAL"></label><label class="field">Opacity <input id="opacity" type="number" value="0.18" min="0.05" max="1" step="0.05"></label>';
+  if(activeTool==='duplexscan'){
+    c.innerHTML=`
+      <label class="field">Back scan order
+        <select id="duplexBackOrder">
+          <option value="reverse" selected>Reverse — feeder starts from the back</option>
+          <option value="as-is">Keep as scanned</option>
+        </select>
+      </label>
+      <label class="field">Back pages rotation
+        <select id="duplexBackRotate">
+          <option value="0" selected>No rotation</option>
+          <option value="180">Rotate 180°</option>
+        </select>
+      </label>
+      <button class="secondary" onclick="swapDuplexFiles()">⇄ Swap front / back PDFs</button>
+      <button class="primary" onclick="processTool()">Auto Arrange & Download</button>
+      <span style="color:var(--muted);font-size:13px;width:100%">Expected order: Front 1 → Back 1 → Front 2 → Back 2… The second PDF is reversed by default for manual duplex feeder scanning.</span>`;
+    return;
+  }
   if(activeTool==='organize'){
     c.innerHTML='<span style="color:var(--muted);font-size:13px">Upload one PDF above. A thumbnail workspace will appear below for drag-and-drop page organization.</span>';
     return;
@@ -496,6 +522,7 @@ async function processTool(){
     if(!files.length) throw new Error('Please add the required file first.');
     setStatus('Processing locally in your browser…');
     if(activeTool==='merge') await mergePDF();
+    if(activeTool==='duplexscan') await arrangeDuplexScans();
     if(activeTool==='extract') await extractPDF(false);
     if(activeTool==='remove') await extractPDF(true);
     if(activeTool==='rotate') await rotatePDF();
@@ -506,6 +533,53 @@ async function processTool(){
     if(activeTool==='inspect') await inspectPDF();
   }catch(e){console.error(e);setStatus(e.message||'Something went wrong.','err')}
 }
+function swapDuplexFiles(){
+  if(files.length<2)return alert('Add the front-side PDF and back-side PDF first.');
+  [files[0],files[1]]=[files[1],files[0]];
+  renderFiles();
+  renderControls();
+}
+
+async function arrangeDuplexScans(){
+  if(files.length!==2)throw new Error('Please add exactly two PDFs: the front-side scan first and the back-side scan second.');
+
+  const front=await PDFDocument.load(await files[0].arrayBuffer());
+  const back=await PDFDocument.load(await files[1].arrayBuffer());
+  const frontCount=front.getPageCount(),backCount=back.getPageCount();
+
+  if(Math.abs(frontCount-backCount)>1){
+    throw new Error(`The scans have ${frontCount} front pages and ${backCount} back pages. For a duplex scan, the page counts should match or differ by only one page.`);
+  }
+
+  const reverseBack=(document.getElementById('duplexBackOrder')?.value||'reverse')==='reverse';
+  const rotateBack=Number(document.getElementById('duplexBackRotate')?.value)||0;
+  const frontIndices=front.getPageIndices();
+  const backIndices=back.getPageIndices();
+  if(reverseBack)backIndices.reverse();
+
+  const out=await PDFDocument.create();
+  const pairs=Math.max(frontIndices.length,backIndices.length);
+
+  for(let i=0;i<pairs;i++){
+    if(i<frontIndices.length){
+      const [p]=await out.copyPages(front,[frontIndices[i]]);
+      out.addPage(p);
+    }
+    if(i<backIndices.length){
+      const [p]=await out.copyPages(back,[backIndices[i]]);
+      if(rotateBack){
+        const old=p.getRotation()?.angle||0;
+        p.setRotation(degrees((old+rotateBack)%360));
+      }
+      out.addPage(p);
+    }
+  }
+
+  const frontBase=files[0].name.replace(/\.pdf$/i,'');
+  download(await out.save(),frontBase+'-duplex-arranged.pdf');
+  setStatus(`Duplex PDF created: ${out.getPageCount()} pages arranged front/back in sequence.`,'ok');
+}
+
 async function mergePDF(){
   if(files.length<2)throw new Error('Add at least two PDF files to merge.');
   const out=await PDFDocument.create();
