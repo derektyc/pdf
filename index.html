@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DTYC PDF v4 — PDF Toolkit</title>
+<title>DTYC PDF v5 — PDF Toolkit</title>
 <meta name="description" content="A fast, privacy-first PDF toolkit that runs in your browser.">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -11,6 +11,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/utif@3.1.0/UTIF.min.js"></script>
 <style>
 :root{
   --bg:#090b11;--surface:#121621;--surface2:#191e2b;--text:#f5f7ff;--muted:#9ba6bd;
@@ -145,6 +146,31 @@ body{
 .metric{background:#171c28;border:1px solid var(--line);padding:10px 12px;border-radius:12px;color:var(--muted);font-size:12px}
 .metric strong{display:block;color:var(--text);font-size:15px;margin-top:3px}
 
+
+/* DTYC PDF v5 — visual page organizer */
+.organizer-shell{display:none;margin-top:18px;background:linear-gradient(180deg,#121621,#10141c);border:1px solid var(--line);border-radius:24px;overflow:hidden}
+.organizer-shell.show{display:block}
+.organizer-toolbar{position:sticky;top:67px;z-index:12;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px 14px;background:rgba(15,19,28,.96);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.organizer-toolbar button{border:1px solid var(--line);background:#171c28;color:var(--text);padding:9px 12px;border-radius:10px;font-weight:800}
+.organizer-toolbar .primary{border:0}
+.organizer-toolbar .danger-btn{color:#fda4af}
+.organizer-toolbar .grow{flex:1}
+.organizer-summary{color:var(--muted);font-size:12px;font-weight:800}
+.organizer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:16px;padding:18px;background:#090c12}
+.organizer-page{position:relative;border:1px solid var(--line);background:#141925;border-radius:16px;padding:10px;transition:.15s ease;user-select:none}
+.organizer-page:hover{border-color:#514990;transform:translateY(-2px)}
+.organizer-page.selected{outline:2px solid var(--brand);outline-offset:2px}
+.organizer-page.dragging{opacity:.45}
+.organizer-thumb{height:210px;border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.organizer-thumb canvas{max-width:100%;max-height:100%;display:block}
+.organizer-page-meta{display:flex;align-items:center;gap:7px;padding:9px 2px 1px}
+.organizer-page-meta strong{font-size:12px}
+.organizer-page-meta span{margin-left:auto;color:var(--muted);font-size:11px}
+.organizer-select{width:18px;height:18px;accent-color:var(--brand)}
+.organizer-handle{position:absolute;right:9px;top:9px;background:rgba(9,11,17,.82);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:4px 7px;color:#fff;font-size:13px;cursor:grab}
+.organizer-note{padding:0 18px 16px;color:var(--muted);font-size:12px}
+@media(max-width:650px){.organizer-toolbar{top:63px}.organizer-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:10px}.organizer-thumb{height:170px}.organizer-toolbar .grow{display:none}}
+
 </style>
 </head>
 <body>
@@ -175,6 +201,9 @@ body{
     <article class="card" data-cat="organize" data-name="merge pdf combine">
       <span class="tag">WORKS NOW</span><div class="icon">🧩</div><h3>Merge PDF</h3><p>Combine multiple PDF files in the order you select.</p><button onclick="openTool('merge')">Open tool →</button>
     </article>
+    <article class="card" data-cat="organize edit" data-name="organize pdf pages reorder rotate delete extract thumbnails">
+      <span class="tag">NEW · V5</span><div class="icon">🗂️</div><h3>Organize Pages</h3><p>Preview every page, drag to reorder, rotate, delete or extract selected pages.</p><button onclick="openTool('organize')">Open tool →</button>
+    </article>
     <article class="card" data-cat="organize" data-name="split extract pdf pages">
       <span class="tag">WORKS NOW</span><div class="icon">✂️</div><h3>Split / Extract</h3><p>Choose page ranges or individual pages and create a new PDF.</p><button onclick="openTool('extract')">Open tool →</button>
     </article>
@@ -186,6 +215,9 @@ body{
     </article>
     <article class="card" data-cat="convert" data-name="jpg image png to pdf">
       <span class="tag">WORKS NOW</span><div class="icon">🖼️</div><h3>Images → PDF</h3><p>Turn JPG or PNG images into a single PDF document.</p><button onclick="openTool('imgpdf')">Open tool →</button>
+    </article>
+    <article class="card" data-cat="convert" data-name="tif tiff image to pdf multipage">
+      <span class="tag">NEW · V5</span><div class="icon">🧾</div><h3>TIFF → PDF</h3><p>Convert TIF/TIFF scans into PDF, including multi-page TIFF files.</p><button onclick="openTool('tifpdf')">Open tool →</button>
     </article>
     <article class="card" data-cat="organize" data-name="remove pages delete">
       <span class="tag">WORKS NOW</span><div class="icon">🗑️</div><h3>Remove Pages</h3><p>Delete selected pages while keeping everything else intact.</p><button onclick="openTool('remove')">Open tool →</button>
@@ -234,6 +266,23 @@ body{
     <div id="fileList" class="files"></div>
     <div id="toolControls" class="controls"></div>
     <div id="status" class="status"></div>
+  </section>
+
+  <section class="organizer-shell" id="pageOrganizer">
+    <div class="organizer-toolbar">
+      <button onclick="selectAllOrganizerPages()">Select all</button>
+      <button onclick="clearOrganizerSelection()">Clear selection</button>
+      <button onclick="rotateOrganizerSelected(-90)">↶ Rotate left</button>
+      <button onclick="rotateOrganizerSelected(90)">↷ Rotate right</button>
+      <button class="danger-btn" onclick="deleteOrganizerSelected()">Delete selected</button>
+      <button onclick="extractOrganizerSelected()">Extract selected</button>
+      <button onclick="resetOrganizer()">Reset</button>
+      <span class="grow"></span>
+      <span class="organizer-summary" id="organizerSummary">0 pages</span>
+      <button class="primary" onclick="saveOrganizedPDF()">Save PDF</button>
+    </div>
+    <div class="organizer-grid" id="organizerGrid"></div>
+    <div class="organizer-note">Tip: drag page cards to change their order. Select pages to rotate, delete or extract them.</div>
   </section>
 
   <section class="editor-shell" id="pdfEditor">
@@ -286,7 +335,7 @@ body{
 
 </main>
 
-<footer class="footer">DTYC PDF • Edit, compress and convert in your browser • Files are not uploaded by this page for supported local tools.</footer>
+<footer class="footer">DTYC PDF v5 • Organize, edit, compress and convert in your browser • Files are not uploaded by this page for supported local tools.</footer>
 
 <script>
 const { PDFDocument, degrees, rgb, StandardFonts } = PDFLib;
@@ -296,10 +345,12 @@ let activeCat = 'all';
 
 const toolInfo = {
   merge:{name:'Merge PDF',desc:'Add two or more PDFs. They will be combined in the order shown.',accept:'.pdf',multi:true},
+  organize:{name:'Organize Pages',desc:'Preview every page, drag to reorder, select pages to rotate/delete/extract, then save a new PDF.',accept:'.pdf',multi:false},
   extract:{name:'Split / Extract Pages',desc:'Enter pages like 1-3,5,8 to create a new PDF.',accept:'.pdf',multi:false},
   rotate:{name:'Rotate PDF',desc:'Rotate every page of one PDF.',accept:'.pdf',multi:false},
   numbers:{name:'Add Page Numbers',desc:'Add page numbers at the bottom of each page.',accept:'.pdf',multi:false},
   imgpdf:{name:'Images → PDF',desc:'Combine JPG/PNG images into one A4-ish PDF.',accept:'image/jpeg,image/png',multi:true},
+  tifpdf:{name:'TIFF → PDF',desc:'Convert .tif or .tiff scans into PDF. Multi-page TIFF files become multi-page PDFs.',accept:'.tif,.tiff,image/tiff',multi:true},
   remove:{name:'Remove Pages',desc:'Enter pages to delete, such as 2,4-6.',accept:'.pdf',multi:false},
   watermark:{name:'Text Watermark',desc:'Add a centered watermark to every page.',accept:'.pdf',multi:false},
   inspect:{name:'PDF Inspector',desc:'Read basic file and PDF metadata without changing the file.',accept:'.pdf',multi:false},
@@ -321,6 +372,7 @@ function filterTools(){
 function openTool(id){
   activeTool=id; files=[];
   document.getElementById('pdfEditor').classList.remove('show');
+  document.getElementById('pageOrganizer').classList.remove('show');
   const t=toolInfo[id];
   const input=document.getElementById('fileInput');
   input.accept=t.accept; input.multiple=t.multi;
@@ -341,16 +393,22 @@ const dz=document.getElementById('dropZone');
 ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('drag')}));
 dz.addEventListener('drop',e=>{if(activeTool)addFiles([...e.dataTransfer.files])});
 
+function fileMatchesTool(f,t){
+  const name=f.name.toLowerCase();
+  if(t.accept==='.pdf') return f.type==='application/pdf'||name.endsWith('.pdf');
+  if(t.accept.includes('.docx')) return f.type==='application/pdf'||name.endsWith('.pdf')||name.endsWith('.docx')||f.type.includes('wordprocessingml');
+  if(t.accept.includes('.tif')) return name.endsWith('.tif')||name.endsWith('.tiff')||f.type==='image/tiff';
+  if(t.accept.includes('image/jpeg')) return ['image/jpeg','image/png'].includes(f.type)||/\.(jpe?g|png)$/i.test(name);
+  return true;
+}
 function addFiles(incoming){
   if(!activeTool)return;
   const t=toolInfo[activeTool];
-  const valid=incoming.filter(f=>{
-    if(t.accept==='.pdf') return f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf');
-    return ['image/jpeg','image/png'].includes(f.type);
-  });
+  const valid=incoming.filter(f=>fileMatchesTool(f,t));
   files=t.multi?[...files,...valid]:valid.slice(0,1);
   renderFiles(); renderControls();
   if(activeTool==='editor' && files.length) initPdfEditor();
+  if(activeTool==='organize' && files.length) initPageOrganizer();
 }
 function removeFile(i){files.splice(i,1);renderFiles()}
 function clearFiles(){
@@ -359,6 +417,8 @@ function clearFiles(){
   renderFiles();
   setStatus('');
   document.getElementById('pdfEditor').classList.remove('show');
+  document.getElementById('pageOrganizer').classList.remove('show');
+  resetOrganizerState();
   Object.values(pageEditors||{}).forEach(x=>{try{x.fabric.dispose()}catch{}});
   pageEditors={};pageHistory={};editPdfJsDoc=null;editPdfBytes=null;
   const p=document.getElementById('editorPages');if(p)p.innerHTML='';
@@ -378,6 +438,10 @@ function renderControls(){
   if(activeTool==='rotate') extra='<label class="field">Rotation <select id="angle"><option>90</option><option>180</option><option>270</option></select></label>';
   if(activeTool==='numbers') extra='<label class="field">Start at <input id="startNo" type="number" value="1" min="1"></label>';
   if(activeTool==='watermark') extra='<label class="field">Text <input id="wmText" value="CONFIDENTIAL"></label><label class="field">Opacity <input id="opacity" type="number" value="0.18" min="0.05" max="1" step="0.05"></label>';
+  if(activeTool==='organize'){
+    c.innerHTML='<span style="color:var(--muted);font-size:13px">Upload one PDF above. A thumbnail workspace will appear below for drag-and-drop page organization.</span>';
+    return;
+  }
   if(activeTool==='editor'){
     c.innerHTML='<span style="color:var(--muted);font-size:13px">Upload one PDF above. All pages will appear in one continuous editable scroll below.</span>';
     return;
@@ -399,7 +463,7 @@ function renderControls(){
     <span style="color:var(--muted);font-size:13px">DOCX → PDF preserves common text, headings, tables and images. PDF → DOCX extracts readable text into an editable Word file.</span>`;
     return;
   }
-  c.innerHTML=extra+`<button class="primary" onclick="processTool()">${activeTool==='inspect'?'Inspect PDF':'Process & Download'}</button>`;
+  c.innerHTML=extra+`<button class="primary" onclick="processTool()">${activeTool==='inspect'?'Inspect PDF':activeTool==='tifpdf'?'Convert to PDF':'Process & Download'}</button>`;
 }
 function setStatus(msg,type=''){
   const s=document.getElementById('status');
@@ -431,6 +495,7 @@ async function processTool(){
     if(activeTool==='numbers') await numberPDF();
     if(activeTool==='watermark') await watermarkPDF();
     if(activeTool==='imgpdf') await imagesToPDF();
+    if(activeTool==='tifpdf') await tiffToPDF();
     if(activeTool==='inspect') await inspectPDF();
   }catch(e){console.error(e);setStatus(e.message||'Something went wrong.','err')}
 }
@@ -473,6 +538,186 @@ async function imagesToPDF(){
   }
   download(await doc.save(),'images.pdf');setStatus('Images converted successfully.','ok')
 }
+async function tiffToPDF(){
+  if(!window.UTIF) throw new Error('TIFF decoder did not load. Refresh the page and try again.');
+  if(!files.length) throw new Error('Add at least one TIF/TIFF file.');
+  setStatus('Converting TIFF file(s) locally…');
+  const doc=await PDFDocument.create();
+  let frameCount=0;
+
+  for(const f of files){
+    const buf=await f.arrayBuffer();
+    const ifds=UTIF.decode(buf);
+    if(!ifds.length) throw new Error('No TIFF pages were found in '+f.name+'.');
+    UTIF.decodeImages(buf,ifds);
+
+    for(const ifd of ifds){
+      const rgba=UTIF.toRGBA8(ifd);
+      const canvas=document.createElement('canvas');
+      canvas.width=ifd.width;canvas.height=ifd.height;
+      const ctx=canvas.getContext('2d');
+      const imageData=new ImageData(new Uint8ClampedArray(rgba),ifd.width,ifd.height);
+      ctx.putImageData(imageData,0,0);
+
+      const pngBytes=dataUrlToUint8(canvas.toDataURL('image/png'));
+      const img=await doc.embedPng(pngBytes);
+      const maxW=595,maxH=842;
+      const scale=Math.min(maxW/img.width,maxH/img.height,1);
+      const w=Math.max(1,img.width*scale),h=Math.max(1,img.height*scale);
+      const page=doc.addPage([w,h]);
+      page.drawImage(img,{x:0,y:0,width:w,height:h});
+      frameCount++;
+    }
+  }
+
+  if(!frameCount) throw new Error('No TIFF pages could be converted.');
+  const base=files.length===1?files[0].name.replace(/\.tiff?$/i,''):'DTYC-TIFF';
+  download(await doc.save(),base+'.pdf');
+  setStatus('Converted '+frameCount+' TIFF page'+(frameCount===1?'':'s')+' to PDF.','ok');
+}
+
+// ---- DTYC PDF v5 visual page organizer ----
+let organizerPdfBytes=null;
+let organizerPdfJsDoc=null;
+let organizerPages=[];
+let organizerDraggedId=null;
+
+function resetOrganizerState(){
+  organizerPdfBytes=null;
+  organizerPages=[];
+  organizerDraggedId=null;
+  if(organizerPdfJsDoc){try{organizerPdfJsDoc.destroy()}catch{}}
+  organizerPdfJsDoc=null;
+  const grid=document.getElementById('organizerGrid');if(grid)grid.innerHTML='';
+  updateOrganizerSummary();
+}
+
+async function initPageOrganizer(){
+  try{
+    resetOrganizerState();
+    organizerPdfBytes=await files[0].arrayBuffer();
+    organizerPdfJsDoc=await pdfjsLib.getDocument({data:new Uint8Array(organizerPdfBytes.slice(0)),disableWorker:true}).promise;
+    organizerPages=Array.from({length:organizerPdfJsDoc.numPages},(_,i)=>({
+      id:'page-'+i+'-'+Math.random().toString(36).slice(2),
+      sourceIndex:i,rotation:0,selected:false
+    }));
+    document.getElementById('pageOrganizer').classList.add('show');
+    await renderOrganizerPages();
+    document.getElementById('pageOrganizer').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){
+    console.error(e);
+    setStatus(e?.message||'Could not open the PDF organizer.','err');
+  }
+}
+
+async function renderOrganizerPages(){
+  const grid=document.getElementById('organizerGrid');
+  if(!grid||!organizerPdfJsDoc)return;
+  grid.innerHTML='';
+
+  for(let i=0;i<organizerPages.length;i++){
+    const item=organizerPages[i];
+    const card=document.createElement('div');
+    card.className='organizer-page'+(item.selected?' selected':'');
+    card.draggable=true;
+    card.dataset.id=item.id;
+    card.innerHTML=`<div class="organizer-handle" title="Drag to reorder">⋮⋮</div>
+      <div class="organizer-thumb"><canvas></canvas></div>
+      <div class="organizer-page-meta">
+        <input class="organizer-select" type="checkbox" ${item.selected?'checked':''} aria-label="Select page ${i+1}">
+        <strong>Page ${i+1}</strong>
+        <span>${item.rotation?((item.rotation%360+360)%360)+'°':'Original '+(item.sourceIndex+1)}</span>
+      </div>`;
+
+    const checkbox=card.querySelector('.organizer-select');
+    checkbox.addEventListener('change',()=>{item.selected=checkbox.checked;card.classList.toggle('selected',item.selected);updateOrganizerSummary()});
+    card.addEventListener('dblclick',e=>{if(e.target.tagName!=='INPUT'){item.selected=!item.selected;checkbox.checked=item.selected;card.classList.toggle('selected',item.selected);updateOrganizerSummary()}});
+    card.addEventListener('dragstart',()=>{organizerDraggedId=item.id;card.classList.add('dragging')});
+    card.addEventListener('dragend',()=>{organizerDraggedId=null;card.classList.remove('dragging')});
+    card.addEventListener('dragover',e=>e.preventDefault());
+    card.addEventListener('drop',e=>{
+      e.preventDefault();
+      if(!organizerDraggedId||organizerDraggedId===item.id)return;
+      const from=organizerPages.findIndex(x=>x.id===organizerDraggedId);
+      const to=organizerPages.findIndex(x=>x.id===item.id);
+      if(from<0||to<0)return;
+      const [moved]=organizerPages.splice(from,1);
+      organizerPages.splice(to,0,moved);
+      renderOrganizerPages();
+    });
+    grid.appendChild(card);
+
+    const page=await organizerPdfJsDoc.getPage(item.sourceIndex+1);
+    const base=page.getViewport({scale:1,rotation:(page.rotate||0)+item.rotation});
+    const scale=Math.min(170/base.width,195/base.height,1);
+    const vp=page.getViewport({scale,rotation:(page.rotate||0)+item.rotation});
+    const canvas=card.querySelector('canvas');
+    const dpr=Math.min(1.5,window.devicePixelRatio||1);
+    canvas.width=Math.max(1,Math.floor(vp.width*dpr));
+    canvas.height=Math.max(1,Math.floor(vp.height*dpr));
+    canvas.style.width=Math.floor(vp.width)+'px';
+    canvas.style.height=Math.floor(vp.height)+'px';
+    await page.render({canvasContext:canvas.getContext('2d'),viewport:vp,transform:dpr===1?null:[dpr,0,0,dpr,0,0]}).promise;
+  }
+  updateOrganizerSummary();
+}
+
+function selectedOrganizerPages(){return organizerPages.filter(x=>x.selected)}
+function updateOrganizerSummary(){
+  const el=document.getElementById('organizerSummary');if(!el)return;
+  const selected=selectedOrganizerPages().length;
+  el.textContent=organizerPages.length+' page'+(organizerPages.length===1?'':'s')+(selected?' · '+selected+' selected':'');
+}
+function selectAllOrganizerPages(){organizerPages.forEach(x=>x.selected=true);renderOrganizerPages()}
+function clearOrganizerSelection(){organizerPages.forEach(x=>x.selected=false);renderOrganizerPages()}
+function rotateOrganizerSelected(delta){
+  const selected=selectedOrganizerPages();
+  if(!selected.length)return alert('Select at least one page first.');
+  selected.forEach(x=>x.rotation=((x.rotation+delta)%360+360)%360);
+  renderOrganizerPages();
+}
+function deleteOrganizerSelected(){
+  const selected=selectedOrganizerPages();
+  if(!selected.length)return alert('Select at least one page first.');
+  if(selected.length===organizerPages.length)return alert('A PDF must keep at least one page.');
+  organizerPages=organizerPages.filter(x=>!x.selected);
+  renderOrganizerPages();
+}
+function resetOrganizer(){
+  if(!organizerPdfJsDoc)return;
+  organizerPages=Array.from({length:organizerPdfJsDoc.numPages},(_,i)=>({id:'page-'+i+'-'+Math.random().toString(36).slice(2),sourceIndex:i,rotation:0,selected:false}));
+  renderOrganizerPages();
+}
+async function buildOrganizedPdf(pageItems){
+  if(!organizerPdfBytes)throw new Error('Open a PDF first.');
+  const src=await PDFDocument.load(new Uint8Array(organizerPdfBytes.slice(0)));
+  const out=await PDFDocument.create();
+  for(const item of pageItems){
+    const [p]=await out.copyPages(src,[item.sourceIndex]);
+    const old=p.getRotation()?.angle||0;
+    p.setRotation(degrees(((old+item.rotation)%360+360)%360));
+    out.addPage(p);
+  }
+  return await out.save();
+}
+async function saveOrganizedPDF(){
+  try{
+    if(!organizerPages.length)throw new Error('No pages remain.');
+    setStatus('Building organized PDF…');
+    download(await buildOrganizedPdf(organizerPages),'DTYC-organized.pdf');
+    setStatus('Organized PDF created successfully.','ok');
+  }catch(e){console.error(e);setStatus(e?.message||'Could not save organized PDF.','err')}
+}
+async function extractOrganizerSelected(){
+  try{
+    const selected=selectedOrganizerPages();
+    if(!selected.length)return alert('Select at least one page first.');
+    setStatus('Extracting selected pages…');
+    download(await buildOrganizedPdf(selected),'DTYC-extracted-pages.pdf');
+    setStatus('Selected pages extracted successfully.','ok');
+  }catch(e){console.error(e);setStatus(e?.message||'Could not extract selected pages.','err')}
+}
+
 async function inspectPDF(){
   const doc=await PDFDocument.load(await files[0].arrayBuffer(),{updateMetadata:false});
   const rows=[
@@ -483,7 +728,7 @@ async function inspectPDF(){
   setStatus(rows.join('   •   '),'ok')
 }
 
-// ---- DTYC PDF v4 continuous visual editor ----
+// ---- DTYC PDF v5 continuous visual editor ----
 let editPdfJsDoc = null;
 let editPdfBytes = null;
 let editScale = 1.22;
