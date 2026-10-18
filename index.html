@@ -274,6 +274,75 @@ body.tool-active #pageOrganizer.show,body.tool-active #pdfEditor.show{margin-top
   .ws-head-actions .back-tools{grid-column:1/-1}
 }
 
+
+/* ===== DTYC PDF v5.2 — duplex + friendly editor ===== */
+.duplex-guide{width:100%;display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:stretch}
+.duplex-slot{border:1px solid #2c384c;background:#121925;border-radius:14px;padding:12px;min-width:0}
+.duplex-slot .slot-kicker{font-size:9px;font-weight:900;letter-spacing:.11em;color:#9f8cff;margin-bottom:5px}
+.duplex-slot strong{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.duplex-slot span{display:block;color:var(--muted);font-size:11px;margin-top:4px}
+.duplex-arrow{display:grid;place-items:center;color:#7f8aa0;font-size:20px}
+.duplex-preview{width:100%;margin-top:4px;border:1px solid #2c384c;border-radius:13px;padding:12px;background:#0f151f}
+.duplex-preview strong{font-size:12px}.duplex-preview p{margin:5px 0 0;color:var(--muted);font-size:12px;line-height:1.55}
+.duplex-order-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.duplex-order-chips span{padding:6px 8px;border:1px solid #2a3548;background:#171f2c;border-radius:9px;font-size:10px;color:#cbd4e5}
+.duplex-order-chips span:nth-child(odd){color:#bcaeff}
+.duplex-warning{color:#fda4af!important}
+
+.friendly-editor{background:#0b1018!important}
+.editor-appbar{
+  position:sticky;top:68px;z-index:24;display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:10px 12px;background:rgba(13,18,27,.96);border-bottom:1px solid #293448;backdrop-filter:blur(15px)
+}
+.editor-app-title{display:flex;align-items:center;gap:9px;min-width:0}
+.editor-app-title strong{font-size:15px}.editor-app-title span{color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+.editor-app-actions{display:flex;align-items:center;gap:6px}
+.editor-app-actions button,.editor-properties button{
+  border:1px solid #2b374a;background:#171f2c;color:var(--text);border-radius:9px;padding:8px 10px;font-weight:800;font-size:12px
+}
+.editor-app-actions .primary{border:0}.editor-zoom{display:flex;align-items:center;border:1px solid #2b374a;border-radius:9px;overflow:hidden}
+.editor-zoom button{border:0;border-radius:0;padding:8px 10px}.editor-zoom span{min-width:48px;text-align:center;font-size:11px;color:#cbd4e5}
+.editor-layout{display:grid;grid-template-columns:84px 118px minmax(0,1fr);min-height:620px}
+.editor-side,.editor-page-nav-wrap{background:#0f151f;border-right:1px solid #273142;padding:10px 8px;min-width:0}
+.editor-side{position:sticky;top:119px;align-self:start;height:calc(100vh - 135px);overflow:auto}
+.editor-page-nav-wrap{position:sticky;top:119px;align-self:start;height:calc(100vh - 135px);overflow:auto}
+.editor-tool-group-title{color:#7f8aa0;font-size:9px;font-weight:900;letter-spacing:.11em;text-transform:uppercase;margin:8px 5px}
+.editor-tool{width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:58px;margin-bottom:6px;border:1px solid transparent;background:transparent;color:#c7cfdd;border-radius:10px}
+.editor-tool span{font-size:19px}.editor-tool b{font-size:10px}
+.editor-tool:hover{background:#171f2c}.editor-tool.active{background:rgba(139,108,255,.16);border-color:rgba(139,108,255,.45);color:#e2dcff}
+.editor-page-nav{display:flex;flex-direction:column;gap:8px}
+.editor-page-nav button{width:100%;padding:6px;border:1px solid #283448;border-radius:9px;background:#151d29;color:#aab5c7}
+.editor-page-nav button.active{border-color:#8b6cff;box-shadow:0 0 0 1px #8b6cff;color:#fff}
+.editor-page-nav img{display:block;width:100%;height:92px;object-fit:contain;background:#fff;border-radius:4px;margin-bottom:5px}
+.editor-page-nav small{font-size:9px}
+.editor-main{min-width:0;background:#090d14}
+.editor-properties{
+  position:sticky;top:119px;z-index:20;display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding:9px 12px;
+  background:rgba(17,23,34,.96);border-bottom:1px solid #273142;backdrop-filter:blur(14px)
+}
+.editor-properties-title{margin-right:auto;min-width:180px}.editor-properties-title strong{display:block;font-size:12px}.editor-properties-title span{display:block;color:#8793a8;font-size:10px;margin-top:2px}
+.editor-properties label{display:flex;align-items:center;gap:6px;color:#9ca7ba;font-size:10px;font-weight:800;border:1px solid #2b374a;background:#171f2c;border-radius:9px;padding:5px 7px}
+.editor-properties input[type=color]{width:27px;height:26px;border:0;padding:0;background:transparent}
+.editor-properties input[type=number]{width:53px;border:0;background:transparent;color:#fff;padding:4px}
+.editor-stage-wrap{padding:24px 18px 60px;overflow:auto;min-height:600px}
+.editor-pages{transition:.12s ease}
+.editor-page{border-radius:6px}.editor-page.active-page{outline:2px solid #8b6cff;outline-offset:5px}
+.editor-help-friendly{padding:10px 12px;border-top:1px solid #273142;background:#0f151f}
+@media(max-width:900px){
+  .editor-layout{grid-template-columns:74px minmax(0,1fr)}
+  .editor-page-nav-wrap{display:none}.editor-side{top:116px}.editor-properties{top:116px}
+  .editor-properties-title{width:100%;margin-right:0}
+}
+@media(max-width:650px){
+  .duplex-guide{grid-template-columns:1fr}.duplex-arrow{transform:rotate(90deg)}
+  .editor-appbar{top:59px;align-items:flex-start}.editor-app-title span{display:none}
+  .editor-app-actions>button:not(.editor-save){display:none}
+  .editor-layout{grid-template-columns:58px minmax(0,1fr)}
+  .editor-side{padding:8px 5px}.editor-tool{min-height:52px}.editor-tool b{font-size:9px}
+  .editor-properties label:nth-of-type(3),.editor-properties button:not(.danger-btn){display:none}
+  .editor-stage-wrap{padding:15px 8px 48px}
+}
+
 </style>
 </head>
 <body>
@@ -395,57 +464,73 @@ body.tool-active #pageOrganizer.show,body.tool-active #pdfEditor.show{margin-top
     <div class="organizer-note">Tip: drag page cards to change their order. Select pages to rotate, delete or extract them.</div>
   </section>
 
-  <section class="editor-shell" id="pdfEditor">
-    <div class="editor-toolbar">
-      <button id="toolSelect" onclick="setEditMode('select')" class="active">↖ Select</button>
-      <button id="toolText" onclick="setEditMode('text')">T Text</button>
-      <button id="toolRect" onclick="setEditMode('rect')">▭ Rectangle</button>
-      <button id="toolEllipse" onclick="setEditMode('ellipse')">◯ Ellipse</button>
-      <button id="toolLine" onclick="setEditMode('line')">／ Line</button>
-      <button id="toolDraw" onclick="setEditMode('draw')">✎ Freehand</button>
-
-      <label class="color-wrap">Color
-        <input id="editColor" type="color" value="#000000" oninput="applyEditorColor(this.value)">
-      </label>
-
-      <label class="field" style="padding:7px 10px">Text size
-        <input id="editFontSize" type="number" value="24" min="8" max="120" style="width:62px" oninput="applyTextSize()">
-      </label>
-
-      <label class="field" style="padding:7px 10px">Line
-        <input id="editStrokeWidth" type="number" value="3" min="1" max="20" style="width:52px" oninput="applyStrokeWidth()">
-      </label>
-
-      <button onclick="document.getElementById('editImageInput').click()">🖼 Add image</button>
-      <input id="editImageInput" type="file" accept="image/png,image/jpeg" class="hidden">
-
-      <span class="grow"></span>
-      <button onclick="bringSelectedForward()">Bring forward</button>
-      <button onclick="sendSelectedBackward()">Send backward</button>
-      <button class="danger-btn" onclick="deleteSelected()">Delete selected</button>
-      <button onclick="undoEdit()">↶ Undo</button>
-      <button onclick="clearPageEdits()">Clear page</button>
-      <button class="primary" onclick="exportEditedPDF()">Save edited PDF</button>
+  <section class="editor-shell friendly-editor" id="pdfEditor">
+    <div class="editor-appbar">
+      <div class="editor-app-title">
+        <strong>Edit PDF</strong>
+        <span id="editorFileName">Document</span>
+      </div>
+      <div class="editor-app-actions">
+        <button onclick="undoEdit()" title="Undo">↶ Undo</button>
+        <button onclick="redoEdit()" title="Redo">↷ Redo</button>
+        <div class="editor-zoom">
+          <button onclick="changeEditorZoom(-.1)" title="Zoom out">−</button>
+          <span id="editorZoomLabel">100%</span>
+          <button onclick="changeEditorZoom(.1)" title="Zoom in">+</button>
+        </div>
+        <button class="primary editor-save" onclick="exportEditedPDF()">Save PDF</button>
+      </div>
     </div>
 
-    <div class="editor-stage-wrap" id="editorScrollArea">
-      <div class="scroll-page-indicator" id="scrollPageIndicator">Page 1 / 1</div>
-      <div class="editor-pages" id="editorPages"></div>
+    <div class="editor-layout">
+      <aside class="editor-side">
+        <div class="editor-tool-group-title">Add</div>
+        <button id="toolSelect" class="editor-tool active" onclick="setEditMode('select')" title="Select and move items"><span>↖</span><b>Select</b></button>
+        <button id="toolText" class="editor-tool" onclick="addTextBox()" title="Add text"><span>T</span><b>Text</b></button>
+        <button class="editor-tool" onclick="document.getElementById('editImageInput').click()" title="Add image"><span>▧</span><b>Image</b></button>
+        <input id="editImageInput" type="file" accept="image/png,image/jpeg" class="hidden">
+        <button id="toolDraw" class="editor-tool" onclick="setEditMode('draw')" title="Draw freehand"><span>✎</span><b>Draw</b></button>
+        <button id="toolHighlight" class="editor-tool" onclick="addHighlight()" title="Add highlight"><span>▰</span><b>Highlight</b></button>
+        <div class="editor-tool-group-title">Shapes</div>
+        <button id="toolRect" class="editor-tool" onclick="addEditorShape('rect')" title="Add rectangle"><span>▭</span><b>Box</b></button>
+        <button id="toolEllipse" class="editor-tool" onclick="addEditorShape('ellipse')" title="Add circle"><span>○</span><b>Circle</b></button>
+        <button id="toolLine" class="editor-tool" onclick="addEditorShape('line')" title="Add line"><span>／</span><b>Line</b></button>
+      </aside>
+
+      <aside class="editor-page-nav-wrap">
+        <div class="editor-tool-group-title">Pages</div>
+        <div id="editorPageNav" class="editor-page-nav"></div>
+      </aside>
+
+      <div class="editor-main">
+        <div class="editor-properties">
+          <div class="editor-properties-title"><strong id="editorSelectionLabel">Nothing selected</strong><span id="editorHint">Choose a tool on the left to start editing.</span></div>
+          <label>Color <input id="editColor" type="color" value="#000000" oninput="applyEditorColor(this.value)"></label>
+          <label>Text size <input id="editFontSize" type="number" value="24" min="8" max="120" oninput="applyTextSize()"></label>
+          <label>Line width <input id="editStrokeWidth" type="number" value="3" min="1" max="20" oninput="applyStrokeWidth()"></label>
+          <button onclick="duplicateSelected()">Duplicate</button>
+          <button onclick="bringSelectedForward()">Forward</button>
+          <button onclick="sendSelectedBackward()">Backward</button>
+          <button class="danger-btn" onclick="deleteSelected()">Delete</button>
+        </div>
+
+        <div class="editor-stage-wrap" id="editorScrollArea">
+          <div class="scroll-page-indicator" id="scrollPageIndicator">Page 1 / 1</div>
+          <div class="editor-pages" id="editorPages"></div>
+        </div>
+      </div>
     </div>
 
-    <div class="editor-help">
-      <span>Scroll through every PDF page</span>
-      <span>Click a page to make it active</span>
-      <span>Text: click the page and type directly</span>
-      <span>Select: drag, resize and rotate objects</span>
-      <span>Double-click text to edit again</span>
-      <span>Default color: black</span>
+    <div class="editor-help editor-help-friendly">
+      <span>Tip: select any item to move, resize or rotate it.</span>
+      <span>Double-click text to edit it again.</span>
+      <span>Shortcuts: Delete • Ctrl/Cmd+Z • Ctrl/Cmd+Y • Esc</span>
     </div>
   </section>
 
 </main>
 
-<footer class="footer">DTYC PDF v5.1 • Private browser-based PDF tools • Your supported files stay on your device.</footer>
+<footer class="footer">DTYC PDF v5.2 • Private browser-based PDF tools • Your supported files stay on your device.</footer>
 
 <script>
 const { PDFDocument, degrees, rgb, StandardFonts } = PDFLib;
@@ -507,7 +592,8 @@ function openTool(id){
   document.getElementById('pageOrganizer').classList.remove('show');
   const t=toolInfo[id];
   const input=document.getElementById('fileInput');
-  input.accept=t.accept; input.multiple=t.multi;
+  input.accept=t.accept; input.multiple=id==='duplexscan'?false:t.multi;
+  document.getElementById('pickBtn').textContent=id==='duplexscan'?'Select FRONT scan':'Select files';
   document.getElementById('dropTitle').textContent=t.name;
   document.getElementById('dropText').textContent=t.desc+' Drop files here or choose from your device.';
   document.getElementById('pickBtn').disabled=false;
@@ -518,7 +604,18 @@ function openTool(id){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function planned(name){alert(name+' is reserved for the next build. This feature needs a heavier browser engine or a small backend for reliable results.')}
-function pickFiles(){document.getElementById('fileInput').click()}
+function pickFiles(){
+  const input=document.getElementById('fileInput');
+  if(activeTool==='duplexscan' && files.length>=2){
+    alert('Both scan slots are filled. Remove one file or use Swap front / back PDFs.');
+    return;
+  }
+  input.value='';
+  if(activeTool==='duplexscan'){
+    document.getElementById('pickBtn').textContent=files.length===0?'Select FRONT scan':'Select BACK scan';
+  }
+  input.click();
+}
 document.getElementById('fileInput').addEventListener('change',e=>addFiles([...e.target.files]));
 const dz=document.getElementById('dropZone');
 ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();if(activeTool)dz.classList.add('drag')}));
@@ -537,10 +634,20 @@ function addFiles(incoming){
   if(!activeTool)return;
   const t=toolInfo[activeTool];
   const valid=incoming.filter(f=>fileMatchesTool(f,t));
-  files=t.multi?[...files,...valid]:valid.slice(0,1);
+  if(activeTool==='duplexscan'){
+    if(!valid.length)return setStatus('Please choose a PDF file.','err');
+    if(files.length>=2)return setStatus('Both duplex scan slots are already filled.','err');
+    files.push(valid[0]);
+  }else{
+    files=t.multi?[...files,...valid]:valid.slice(0,1);
+  }
   renderFiles(); renderControls();
   if(activeTool==='editor' && files.length) initPdfEditor();
   if(activeTool==='organize' && files.length) initPageOrganizer();
+  if(activeTool==='duplexscan'){
+    document.getElementById('pickBtn').textContent=files.length===0?'Select FRONT scan':files.length===1?'Select BACK scan':'Scans ready';
+    if(files.length===2)setTimeout(updateDuplexPreview,0);
+  }
 }
 function removeFile(i){
   files.splice(i,1);
@@ -560,8 +667,9 @@ function clearFiles(){
   document.getElementById('pageOrganizer').classList.remove('show');
   resetOrganizerState();
   Object.values(pageEditors||{}).forEach(x=>{try{x.fabric.dispose()}catch{}});
-  pageEditors={};pageHistory={};editPdfJsDoc=null;editPdfBytes=null;
-  const p=document.getElementById('editorPages');if(p)p.innerHTML='';
+  pageEditors={};pageHistory={};pageRedoHistory={};editPdfJsDoc=null;editPdfBytes=null;editorZoom=1;
+  const p=document.getElementById('editorPages');if(p){p.innerHTML='';p.style.zoom='1'}
+  const nav=document.getElementById('editorPageNav');if(nav)nav.innerHTML='';
 }
 function size(n){if(n<1024)return n+' B';if(n<1048576)return(n/1024).toFixed(1)+' KB';return(n/1048576).toFixed(2)+' MB'}
 function renderFiles(){
@@ -583,22 +691,41 @@ function renderControls(){
   if(activeTool==='numbers') extra='<label class="field">Start at <input id="startNo" type="number" value="1" min="1"></label>';
   if(activeTool==='watermark') extra='<label class="field">Text <input id="wmText" value="CONFIDENTIAL"></label><label class="field">Opacity <input id="opacity" type="number" value="0.18" min="0.05" max="1" step="0.05"></label>';
   if(activeTool==='duplexscan'){
+    const front=files[0],back=files[1];
     c.innerHTML=`
-      <label class="field">Back scan order
-        <select id="duplexBackOrder">
-          <option value="reverse" selected>Reverse — feeder starts from the back</option>
-          <option value="as-is">Keep as scanned</option>
+      <div class="duplex-guide">
+        <div class="duplex-slot">
+          <div class="slot-kicker">STEP 1 · FRONT SIDES</div>
+          <strong>${front?escapeHtml(front.name):'No front scan selected'}</strong>
+          <span>${front?size(front.size):'Scan pages 1, 3, 5… first'}</span>
+        </div>
+        <div class="duplex-arrow">→</div>
+        <div class="duplex-slot">
+          <div class="slot-kicker">STEP 2 · BACK SIDES</div>
+          <strong>${back?escapeHtml(back.name):'Select your back scan next'}</strong>
+          <span>${back?size(back.size):'Flip the stack and scan the reverse sides'}</span>
+        </div>
+      </div>
+      ${!back?'<button class="primary" onclick="pickFiles()">Select BACK scan</button>':''}
+      <label class="field">Back scan direction
+        <select id="duplexBackOrder" onchange="updateDuplexPreview()">
+          <option value="reverse" selected>Starts from the LAST sheet — reverse it</option>
+          <option value="as-is">Starts from the FIRST sheet — keep order</option>
         </select>
       </label>
-      <label class="field">Back pages rotation
-        <select id="duplexBackRotate">
-          <option value="0" selected>No rotation</option>
+      <label class="field">Back pages
+        <select id="duplexBackRotate" onchange="updateDuplexPreview()">
+          <option value="0" selected>Keep orientation</option>
           <option value="180">Rotate 180°</option>
         </select>
       </label>
-      <button class="secondary" onclick="swapDuplexFiles()">⇄ Swap front / back PDFs</button>
-      <button class="primary" onclick="processTool()">Auto Arrange & Download</button>
-      <span style="color:var(--muted);font-size:13px;width:100%">Expected order: Front 1 → Back 1 → Front 2 → Back 2… The second PDF is reversed by default for manual duplex feeder scanning.</span>`;
+      <button class="secondary" onclick="swapDuplexFiles()">⇄ Swap front / back</button>
+      <button class="primary" onclick="processTool()" ${files.length===2?'':'disabled'}>Arrange & Download</button>
+      <div id="duplexPreview" class="duplex-preview">
+        <strong>Output preview</strong>
+        <p>${files.length===2?'Checking page order…':'Add both PDFs to preview the final sequence.'}</p>
+      </div>`;
+    if(files.length===2)setTimeout(updateDuplexPreview,0);
     return;
   }
   if(activeTool==='organize'){
@@ -668,6 +795,42 @@ function swapDuplexFiles(){
   [files[0],files[1]]=[files[1],files[0]];
   renderFiles();
   renderControls();
+  setTimeout(updateDuplexPreview,0);
+}
+
+async function getDuplexPlan(){
+  if(files.length!==2)return null;
+  const front=await PDFDocument.load(await files[0].arrayBuffer());
+  const back=await PDFDocument.load(await files[1].arrayBuffer());
+  const frontCount=front.getPageCount(),backCount=back.getPageCount();
+  const reverseBack=(document.getElementById('duplexBackOrder')?.value||'reverse')==='reverse';
+  const frontIndices=front.getPageIndices();
+  const backIndices=back.getPageIndices();
+  if(reverseBack)backIndices.reverse();
+  const sequence=[];
+  const pairs=Math.max(frontIndices.length,backIndices.length);
+  for(let i=0;i<pairs;i++){
+    if(i<frontIndices.length)sequence.push({side:'Front',sourcePage:frontIndices[i]+1});
+    if(i<backIndices.length)sequence.push({side:'Back',sourcePage:backIndices[i]+1});
+  }
+  return {frontCount,backCount,sequence};
+}
+
+async function updateDuplexPreview(){
+  const box=document.getElementById('duplexPreview');
+  if(!box||files.length!==2)return;
+  try{
+    box.innerHTML='<strong>Output preview</strong><p>Checking page order…</p>';
+    const plan=await getDuplexPlan();
+    const mismatch=Math.abs(plan.frontCount-plan.backCount)>1;
+    const backExtra=plan.backCount>plan.frontCount;
+    const shown=plan.sequence.slice(0,12);
+    box.innerHTML=`<strong>Output preview · ${plan.sequence.length} final pages</strong>
+      <p class="${mismatch||backExtra?'duplex-warning':''}">${mismatch?'⚠ The two scans differ by more than one page. Check that the correct PDFs were selected.':backExtra?'⚠ The back scan has more pages than the front scan. The front/back files may be swapped.':'Looks consistent. The arranger will interleave the front and back scans.'}</p>
+      <div class="duplex-order-chips">${shown.map((x,i)=>`<span>${i+1}. ${x.side} scan p${x.sourcePage}</span>`).join('')}${plan.sequence.length>shown.length?'<span>…</span>':''}</div>`;
+  }catch(e){
+    box.innerHTML=`<strong>Output preview</strong><p class="duplex-warning">${escapeHtml(e?.message||'Could not preview the scans.')}</p>`;
+  }
 }
 
 async function arrangeDuplexScans(){
@@ -678,7 +841,10 @@ async function arrangeDuplexScans(){
   const frontCount=front.getPageCount(),backCount=back.getPageCount();
 
   if(Math.abs(frontCount-backCount)>1){
-    throw new Error(`The scans have ${frontCount} front pages and ${backCount} back pages. For a duplex scan, the page counts should match or differ by only one page.`);
+    throw new Error(`The scans have ${frontCount} front-side pages and ${backCount} back-side pages. Please check the two selected files before arranging.`);
+  }
+  if(backCount>frontCount){
+    throw new Error('The back-side scan has more pages than the front-side scan. The PDFs may be swapped — use “Swap front / back” and preview again.');
   }
 
   const reverseBack=(document.getElementById('duplexBackOrder')?.value||'reverse')==='reverse';
@@ -947,8 +1113,10 @@ let editMode = 'select';
 let activeEditorPage = 1;
 let pageEditors = {};
 let pageHistory = {};
+let pageRedoHistory = {};
 let pageObservers = [];
 let historyLock = false;
+let editorZoom = 1;
 
 if(window.pdfjsLib){
   pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -975,7 +1143,11 @@ async function initPdfEditor(){
     Object.values(pageEditors).forEach(x=>{try{x.fabric.dispose()}catch{}});
     pageEditors = {};
     pageHistory = {};
+    pageRedoHistory = {};
     activeEditorPage = 1;
+    editorZoom = 1;
+    document.getElementById('editorZoomLabel').textContent='100%';
+    document.getElementById('editorFileName').textContent=files[0]?.name||'Document';
 
     document.getElementById('pdfEditor').classList.add('show');
     await renderAllEditablePages();
@@ -1019,12 +1191,15 @@ async function renderAllEditablePages(){
 
     pageEditors[pageNo]={fabric:fc,width:w,height:h};
     pageHistory[pageNo]=[JSON.stringify(fc.toJSON())];
+    pageRedoHistory[pageNo]=[];
     wireEditorCanvas(fc,pageNo);
 
     wrap.addEventListener('mousedown',()=>setActiveEditorPage(pageNo));
     wrap.addEventListener('touchstart',()=>setActiveEditorPage(pageNo),{passive:true});
   }
 
+  buildEditorPageNav();
+  applyEditorZoom();
   setupPageObserver();
 }
 
@@ -1036,6 +1211,7 @@ function setupPageObserver(){
     if(visible[0]){
       const p=Number(visible[0].target.dataset.page);
       document.getElementById('scrollPageIndicator').textContent=`Page ${p} / ${editPdfJsDoc.numPages}`;
+      setActiveEditorPage(p);
     }
   },{root:null,threshold:[0.25,0.5,0.75]});
   document.querySelectorAll('.editor-page').forEach(el=>obs.observe(el));
@@ -1045,8 +1221,10 @@ function setupPageObserver(){
 function setActiveEditorPage(pageNo){
   activeEditorPage=pageNo;
   document.querySelectorAll('.editor-page').forEach(el=>el.classList.toggle('active-page',Number(el.dataset.page)===pageNo));
+  document.querySelectorAll('#editorPageNav button').forEach(el=>el.classList.toggle('active',Number(el.dataset.page)===pageNo));
   const fc=getActiveEditor();
   if(fc) configureCanvasMode(fc);
+  updateEditorSelectionLabel();
 }
 
 function wireEditorCanvas(fc,pageNo){
@@ -1083,6 +1261,7 @@ function wireEditorCanvas(fc,pageNo){
   });
   fc.on('selection:created',syncControlsFromSelection);
   fc.on('selection:updated',syncControlsFromSelection);
+  fc.on('selection:cleared',updateEditorSelectionLabel);
 
   configureCanvasMode(fc);
 }
@@ -1106,7 +1285,7 @@ function configureCanvasMode(fc){
 
 function setEditMode(mode){
   editMode=mode;
-  ['select','text','rect','ellipse','line','draw'].forEach(m=>{
+  ['select','text','rect','ellipse','line','draw','highlight'].forEach(m=>{
     const id='tool'+m.charAt(0).toUpperCase()+m.slice(1);
     const b=document.getElementById(id);
     if(b)b.classList.toggle('active',m===mode);
@@ -1117,11 +1296,48 @@ function setEditMode(mode){
 function syncControlsFromSelection(){
   const fc=getActiveEditor();
   const obj=fc?.getActiveObject();
-  if(!obj)return;
+  if(!obj){updateEditorSelectionLabel();return}
   let color=obj.stroke||obj.fill;
   if(typeof color==='string' && /^#[0-9a-f]{6}$/i.test(color))document.getElementById('editColor').value=color;
   if(obj.fontSize)document.getElementById('editFontSize').value=Math.round(obj.fontSize);
   if(obj.strokeWidth)document.getElementById('editStrokeWidth').value=Math.round(obj.strokeWidth);
+  updateEditorSelectionLabel();
+}
+
+function updateEditorSelectionLabel(){
+  const label=document.getElementById('editorSelectionLabel'),hint=document.getElementById('editorHint');
+  if(!label||!hint)return;
+  const obj=getActiveEditor()?.getActiveObject();
+  if(!obj){label.textContent='Nothing selected';hint.textContent='Choose a tool on the left to add something.';return}
+  const names={'i-text':'Text',text:'Text',textbox:'Text',image:'Image',rect:'Rectangle',ellipse:'Circle',line:'Line',path:'Drawing'};
+  label.textContent=names[obj.type]||'Selected item';
+  hint.textContent='Drag to move · use handles to resize or rotate.';
+}
+
+function activeCanvasCenter(){
+  const fc=getActiveEditor();
+  return fc?{fc,x:fc.getWidth()/2,y:fc.getHeight()/2}:null;
+}
+function addTextBox(){
+  const c=activeCanvasCenter();if(!c)return;
+  const txt=new fabric.IText('Type here',{left:c.x-70,top:c.y-18,fill:currentEditorColor(),fontSize:currentTextSize(),fontFamily:'Arial',editable:true});
+  c.fc.add(txt);c.fc.setActiveObject(txt);txt.enterEditing();txt.selectAll();c.fc.requestRenderAll();
+  rememberHistory(activeEditorPage);setEditMode('select');updateEditorSelectionLabel();
+}
+function addEditorShape(type){
+  const c=activeCanvasCenter();if(!c)return;
+  let obj;
+  if(type==='rect')obj=new fabric.Rect({left:c.x-85,top:c.y-48,width:170,height:95,fill:'rgba(0,0,0,0)',stroke:currentEditorColor(),strokeWidth:currentStrokeWidth()});
+  if(type==='ellipse')obj=new fabric.Ellipse({left:c.x-80,top:c.y-50,rx:80,ry:50,fill:'rgba(0,0,0,0)',stroke:currentEditorColor(),strokeWidth:currentStrokeWidth()});
+  if(type==='line')obj=new fabric.Line([c.x-85,c.y,c.x+85,c.y],{stroke:currentEditorColor(),strokeWidth:currentStrokeWidth()});
+  if(!obj)return;
+  c.fc.add(obj);c.fc.setActiveObject(obj);c.fc.requestRenderAll();rememberHistory(activeEditorPage);setEditMode('select');updateEditorSelectionLabel();
+}
+function addHighlight(){
+  const c=activeCanvasCenter();if(!c)return;
+  const obj=new fabric.Rect({left:c.x-120,top:c.y-14,width:240,height:28,fill:'#fff176',opacity:.48,strokeWidth:0});
+  obj.set('dtHighlight',true);
+  c.fc.add(obj);c.fc.setActiveObject(obj);c.fc.requestRenderAll();rememberHistory(activeEditorPage);setEditMode('select');updateEditorSelectionLabel();
 }
 
 function applyEditorColor(color){
@@ -1130,7 +1346,8 @@ function applyEditorColor(color){
   });
   const fc=getActiveEditor(); if(!fc)return;
   fc.getActiveObjects().forEach(obj=>{
-    if(['i-text','textbox','text'].includes(obj.type))obj.set('fill',color);
+    if(obj.dtHighlight)obj.set('fill',color);
+    else if(['i-text','textbox','text'].includes(obj.type))obj.set('fill',color);
     else if(['path','line','rect','ellipse'].includes(obj.type))obj.set('stroke',color);
   });
   fc.requestRenderAll(); rememberHistory(activeEditorPage);
@@ -1165,7 +1382,14 @@ document.getElementById('editImageInput').addEventListener('change',e=>{
 function deleteSelected(){
   const fc=getActiveEditor(); if(!fc)return;
   fc.getActiveObjects().forEach(o=>fc.remove(o));
-  fc.discardActiveObject();fc.requestRenderAll();rememberHistory(activeEditorPage);
+  fc.discardActiveObject();fc.requestRenderAll();rememberHistory(activeEditorPage);updateEditorSelectionLabel();
+}
+function duplicateSelected(){
+  const fc=getActiveEditor(),obj=fc?.getActiveObject();if(!fc||!obj)return;
+  obj.clone(clone=>{
+    clone.set({left:(obj.left||0)+18,top:(obj.top||0)+18});
+    fc.add(clone);fc.setActiveObject(clone);fc.requestRenderAll();rememberHistory(activeEditorPage);updateEditorSelectionLabel();
+  });
 }
 function bringSelectedForward(){const fc=getActiveEditor();if(!fc)return;fc.getActiveObjects().forEach(o=>fc.bringForward(o));fc.requestRenderAll();rememberHistory(activeEditorPage)}
 function sendSelectedBackward(){const fc=getActiveEditor();if(!fc)return;fc.getActiveObjects().forEach(o=>fc.sendBackwards(o));fc.requestRenderAll();rememberHistory(activeEditorPage)}
@@ -1179,17 +1403,65 @@ function rememberHistory(pageNo){
   const fc=pageEditors[pageNo]?.fabric;if(!fc)return;
   const snap=JSON.stringify(fc.toJSON());
   const arr=pageHistory[pageNo]||(pageHistory[pageNo]=[]);
-  if(arr[arr.length-1]!==snap){arr.push(snap);if(arr.length>50)arr.shift()}
+  if(arr[arr.length-1]!==snap){arr.push(snap);if(arr.length>50)arr.shift();pageRedoHistory[pageNo]=[]}
+}
+async function loadEditorSnapshot(fc,snap){
+  historyLock=true;
+  await new Promise(resolve=>fc.loadFromJSON(JSON.parse(snap),()=>{fc.renderAll();resolve()}));
+  historyLock=false;updateEditorSelectionLabel();
 }
 async function undoEdit(){
   const fc=getActiveEditor();if(!fc)return;
   const arr=pageHistory[activeEditorPage]||[];
   if(arr.length<=1)return;
-  arr.pop();
-  historyLock=true;
-  await new Promise(resolve=>fc.loadFromJSON(JSON.parse(arr[arr.length-1]),()=>{fc.renderAll();resolve()}));
-  historyLock=false;
+  const current=arr.pop();
+  (pageRedoHistory[activeEditorPage]||(pageRedoHistory[activeEditorPage]=[])).push(current);
+  await loadEditorSnapshot(fc,arr[arr.length-1]);
 }
+async function redoEdit(){
+  const fc=getActiveEditor();if(!fc)return;
+  const redo=pageRedoHistory[activeEditorPage]||[];
+  if(!redo.length)return;
+  const snap=redo.pop();
+  (pageHistory[activeEditorPage]||(pageHistory[activeEditorPage]=[])).push(snap);
+  await loadEditorSnapshot(fc,snap);
+}
+
+function changeEditorZoom(delta){
+  editorZoom=Math.max(.6,Math.min(1.8,Math.round((editorZoom+delta)*10)/10));
+  applyEditorZoom();
+}
+function applyEditorZoom(){
+  const pages=document.getElementById('editorPages');
+  if(pages)pages.style.zoom=String(editorZoom);
+  const label=document.getElementById('editorZoomLabel');
+  if(label)label.textContent=Math.round(editorZoom*100)+'%';
+}
+function buildEditorPageNav(){
+  const nav=document.getElementById('editorPageNav');if(!nav)return;
+  nav.innerHTML='';
+  document.querySelectorAll('.editor-page').forEach((pageEl,i)=>{
+    const bg=pageEl.querySelector('canvas.pdf-bg');
+    const btn=document.createElement('button');btn.type='button';btn.dataset.page=String(i+1);
+    const img=document.createElement('img');try{img.src=bg.toDataURL('image/jpeg',.55)}catch(_){}
+    const label=document.createElement('small');label.textContent='Page '+(i+1);
+    btn.append(img,label);
+    if(i===0)btn.classList.add('active');
+    btn.onclick=()=>{setActiveEditorPage(i+1);pageEl.scrollIntoView({behavior:'smooth',block:'center'})};
+    nav.appendChild(btn);
+  });
+}
+
+document.addEventListener('keydown',e=>{
+  const editor=document.getElementById('pdfEditor');
+  if(!editor?.classList.contains('show'))return;
+  const tag=(e.target?.tagName||'').toLowerCase();
+  const typing=tag==='input'||tag==='textarea'||e.target?.isContentEditable;
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();e.shiftKey?redoEdit():undoEdit();return}
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='y'){e.preventDefault();redoEdit();return}
+  if(e.key==='Escape'){setEditMode('select');getActiveEditor()?.discardActiveObject();getActiveEditor()?.requestRenderAll();updateEditorSelectionLabel();return}
+  if(!typing&&(e.key==='Delete'||e.key==='Backspace')){e.preventDefault();deleteSelected()}
+});
 
 async function exportEditedPDF(){
   if(!editPdfBytes)return;
