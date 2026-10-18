@@ -201,7 +201,7 @@ body{
     <article class="card" data-cat="organize" data-name="merge pdf combine">
       <span class="tag">WORKS NOW</span><div class="icon">🧩</div><h3>Merge PDF</h3><p>Combine multiple PDF files in the order you select.</p><button onclick="openTool('merge')">Open tool →</button>
     </article>
-    <article class="card" data-cat="organize edit" data-name="organize pdf pages reorder rotate delete extract thumbnails">
+    <article class="card" data-cat="organize" data-name="organize pdf pages reorder rotate delete extract thumbnails">
       <span class="tag">NEW · V5</span><div class="icon">🗂️</div><h3>Organize Pages</h3><p>Preview every page, drag to reorder, rotate, delete or extract selected pages.</p><button onclick="openTool('organize')">Open tool →</button>
     </article>
     <article class="card" data-cat="organize" data-name="split extract pdf pages">
@@ -410,7 +410,14 @@ function addFiles(incoming){
   if(activeTool==='editor' && files.length) initPdfEditor();
   if(activeTool==='organize' && files.length) initPageOrganizer();
 }
-function removeFile(i){files.splice(i,1);renderFiles()}
+function removeFile(i){
+  files.splice(i,1);
+  renderFiles();
+  if(activeTool==='organize'){
+    if(files.length)initPageOrganizer();
+    else{document.getElementById('pageOrganizer').classList.remove('show');resetOrganizerState()}
+  }
+}
 function clearFiles(){
   files=[];
   document.getElementById('fileInput').value='';
