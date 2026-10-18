@@ -171,19 +171,122 @@ body{
 .organizer-note{padding:0 18px 16px;color:var(--muted);font-size:12px}
 @media(max-width:650px){.organizer-toolbar{top:63px}.organizer-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:10px}.organizer-thumb{height:170px}.organizer-toolbar .grow{display:none}}
 
+/* ===== DTYC PDF v5.1 — focused dashboard redesign ===== */
+:root{
+  --bg:#080b12;--surface:#111722;--surface2:#171e2b;--text:#f7f8fc;--muted:#9da8bc;
+  --line:#273142;--brand:#8b6cff;--brand2:#ae72ff;--good:#22c55e;--danger:#fb7185;
+  --shadow:0 18px 55px rgba(0,0,0,.34);--radius:18px;
+}
+html{scroll-padding-top:84px}
+body{background:
+  radial-gradient(circle at 25% -10%,rgba(139,108,255,.16),transparent 34%),
+  radial-gradient(circle at 100% 24%,rgba(73,113,255,.07),transparent 30%),
+  var(--bg);min-height:100vh}
+.topbar{
+  min-height:68px;padding:10px max(18px,calc((100vw - 1240px)/2));
+  background:rgba(8,11,18,.82);border-bottom:1px solid rgba(255,255,255,.07);
+  backdrop-filter:blur(18px)
+}
+.brand{font-size:16px;line-height:1.05}.brand small{display:block;margin-top:4px;color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.03em}
+.logo{width:40px;height:40px;border-radius:13px;font-size:11px}
+.top-actions .pill{background:#111722;border-color:#283246;padding:9px 12px;color:#c8d0df}
+.hero{max-width:1240px;margin:0 auto;padding:52px 24px 36px;text-align:left}
+.hero h1{font-size:clamp(38px,5.4vw,66px);max-width:880px;margin:16px 0 15px;line-height:1.01}
+.hero p{max-width:700px;margin:0;color:#a9b3c6;font-size:17px}
+.privacy-row{justify-content:flex-start;margin-top:20px;gap:8px}
+.privacy-row span{padding:7px 10px;background:#111722;border-color:#273142;font-size:12px}
+.badge{background:rgba(139,108,255,.12);border:1px solid rgba(139,108,255,.25);color:#b8a7ff;padding:7px 10px}
+.shell{max-width:1240px;padding:0 24px 64px}
+.toolbar{
+  position:sticky;top:76px;z-index:25;margin:0 0 22px;padding:10px;
+  background:rgba(12,16,24,.88);border:1px solid rgba(255,255,255,.07);
+  border-radius:16px;backdrop-filter:blur(16px);box-shadow:0 12px 35px rgba(0,0,0,.22)
+}
+.search{max-width:none;flex:1;background:#121925;border-color:#293448;border-radius:11px;padding:10px 12px}
+.search input{color:var(--text)}
+.tabs{flex:0 0 auto}
+.tab{background:#121925;border-color:#293448;border-radius:10px;padding:10px 13px}
+.tab.active{background:#f5f7ff;color:#0a0d14;border-color:#f5f7ff}
+.tool-catalog-title{margin:28px 0 15px}
+.tool-catalog-title h2{font-size:22px}.tool-catalog-title p{font-size:13px}
+.grid{
+  grid-template-columns:repeat(auto-fill,minmax(245px,1fr));gap:12px;
+}
+.card{
+  min-height:175px;padding:18px;border-radius:16px;background:linear-gradient(180deg,#111722,#0f151f);
+  display:flex;flex-direction:column;align-items:flex-start
+}
+.card:hover{transform:translateY(-2px);border-color:#514a7c;box-shadow:0 12px 34px rgba(0,0,0,.28)}
+.card .icon{width:42px;height:42px;border-radius:12px;font-size:20px;margin:0;background:rgba(139,108,255,.13)}
+.card h3{font-size:16px;margin:14px 0 5px}.card p{font-size:12.5px;line-height:1.5;margin:0 0 15px;max-width:95%}
+.card button{margin-top:auto;width:100%;padding:9px 11px;text-align:left;border-radius:9px;background:#171f2c;border:1px solid #293448;color:#cabfff}
+.card button:hover{background:#202a3a}
+.card.active-tool-card{border-color:rgba(139,108,255,.7);box-shadow:0 0 0 2px rgba(139,108,255,.12)}
+.tag{top:12px;right:12px;font-size:9px;padding:4px 7px}
+.tag:not(.soon){background:rgba(139,108,255,.12);color:#c8bbff}
+.tag.soon{opacity:.72}
+.drop{
+  display:none;min-height:260px;padding:30px;margin-top:6px;
+  background:linear-gradient(180deg,#111722,#0f141e);border:1.5px dashed #35425a;border-radius:18px
+}
+body.tool-active:not(.has-files) .drop{display:grid}
+.drop.drag{background:rgba(139,108,255,.09);border-color:#8b6cff}
+.drop-inner{max-width:590px}.big-icon{font-size:38px}.drop h2{font-size:24px;margin:10px 0 7px}.drop p{font-size:14px}
+.workspace{
+  margin-top:12px;padding:18px;background:linear-gradient(180deg,#111722,#0f141e);
+  border-color:#273142;border-radius:18px
+}
+.workspace.show{display:block}
+body.tool-active:not(.has-files) .workspace.show{display:none}
+.ws-head{margin-bottom:14px;align-items:flex-start}
+.ws-title h2{font-size:21px;margin:2px 0 4px}.ws-title p{max-width:700px;line-height:1.45}
+.workspace-kicker{display:block;color:#9f8cff;font-size:9px;font-weight:900;letter-spacing:.12em;margin-bottom:4px}
+.ws-head-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.ws-head-actions button{white-space:nowrap;padding:9px 11px}
+.back-tools{color:#cbbfff!important}
+.files{gap:8px;margin:10px 0}
+.file-row{grid-template-columns:minmax(0,1fr) auto;padding:11px 12px;border:1px solid #242f40;background:#151d2a}
+.file-meta{min-width:0}.file-meta strong{overflow-wrap:anywhere}.file-meta span{display:block;margin-top:3px}
+.controls{gap:8px;padding-top:14px}.field{background:#171f2c;border:1px solid #293448}
+.status{border:1px solid #283246}
+body.tool-active .hero,body.tool-active .toolbar,body.tool-active #toolGrid,body.tool-active .tool-catalog-title{display:none}
+body.tool-active .shell{padding-top:24px}
+body.tool-active #pageOrganizer.show,body.tool-active #pdfEditor.show{margin-top:12px}
+.primary{border-radius:11px;padding:11px 16px}
+.secondary{border-radius:10px;background:#151d29}
+.organizer-shell,.editor-shell{border-radius:18px}
+.footer{border-top:1px solid rgba(255,255,255,.05);padding:25px 20px 32px}
+@media(max-width:760px){
+  .privacy-pill{display:none!important}
+  .hero{padding:34px 16px 26px}.hero h1{font-size:39px}.hero p{font-size:15px}
+  .shell{padding:0 12px 48px}.toolbar{top:70px;flex-direction:column;align-items:stretch}
+  .tabs{width:100%}.tab{flex:1;text-align:center}.grid{grid-template-columns:1fr 1fr}
+  .card{min-height:165px;padding:15px}.card p{font-size:12px}
+  .ws-head{gap:12px}.ws-head-actions{width:100%;justify-content:flex-start}
+}
+@media(max-width:520px){
+  .topbar{padding:9px 12px}.brand small{display:none}
+  .hero h1{font-size:34px}.privacy-row span:nth-child(n+3){display:none}
+  .grid{grid-template-columns:1fr}
+  .card{min-height:148px}
+  .drop{padding:22px 14px;min-height:225px}.drop h2{font-size:21px}
+  .workspace{padding:14px}.ws-head-actions{display:grid;grid-template-columns:1fr 1fr}
+  .ws-head-actions .back-tools{grid-column:1/-1}
+}
+
 </style>
 </head>
 <body>
 <header class="topbar">
-  <div class="brand"><div class="logo">DT</div>DTYC PDF</div>
-  <div class="top-actions"><span class="pill">🔒 Local processing</span><button class="pill" onclick="scrollToTools()">All tools</button></div>
+  <div class="brand"><div class="logo">DT</div><div><div>DTYC PDF</div><small>Private PDF toolkit</small></div></div>
+  <div class="top-actions"><span class="pill privacy-pill">🔒 Files stay on your device</span><button class="pill" onclick="goToTools()">Tools</button></div>
 </header>
 
 <section class="hero">
-  <span class="badge">⚡ Privacy-first PDF workspace</span>
-  <h1>Your PDF toolbox, <span>without the clutter.</span></h1>
-  <p>Merge, split, rotate, extract, convert and organize documents in one polished workspace. Supported tools run locally in your browser, so your PDFs stay on your device.</p>
-  <div class="privacy-row"><span>✓ No account required</span><span>✓ Drag & drop</span><span>✓ Desktop + tablet friendly</span><span>✓ Local processing</span></div>
+  <span class="badge">PDF tools that stay private</span>
+  <h1>Do more with PDFs. <span>Right in your browser.</span></h1>
+  <p>Organize scans, merge documents, convert files, edit pages and more — without uploading your documents to a server.</p>
+  <div class="privacy-row"><span>✓ No account</span><span>✓ Local processing</span><span>✓ Drag & drop</span><span>✓ Desktop + tablet</span></div>
 </section>
 
 <main class="shell" id="tools">
@@ -249,7 +352,7 @@ body{
     </article>
   </section>
 
-  <div class="section-title"><h2>Workspace</h2><p>Select a tool above, drop your files here, then process them locally.</p></div>
+  <div class="section-title tool-catalog-title"><h2>Choose a tool</h2><p>Pick what you want to do. You can switch tools at any time.</p></div>
 
   <section class="drop" id="dropZone">
     <div class="drop-inner">
@@ -263,8 +366,12 @@ body{
 
   <section class="workspace" id="workspace">
     <div class="ws-head">
-      <div class="ws-title"><h2 id="wsName">Tool</h2><p id="wsDesc"></p></div>
-      <button class="secondary" onclick="clearFiles()">Clear files</button>
+      <div class="ws-title"><span class="workspace-kicker">ACTIVE TOOL</span><h2 id="wsName">Tool</h2><p id="wsDesc"></p></div>
+      <div class="ws-head-actions">
+        <button class="secondary" onclick="pickFiles()">+ Add files</button>
+        <button class="secondary" onclick="clearFiles()">Clear</button>
+        <button class="secondary back-tools" onclick="closeActiveTool()">← Back to tools</button>
+      </div>
     </div>
     <div id="fileList" class="files"></div>
     <div id="toolControls" class="controls"></div>
@@ -338,7 +445,7 @@ body{
 
 </main>
 
-<footer class="footer">DTYC PDF v5 • Organize, edit, compress and convert in your browser • Files are not uploaded by this page for supported local tools.</footer>
+<footer class="footer">DTYC PDF v5.1 • Private browser-based PDF tools • Your supported files stay on your device.</footer>
 
 <script>
 const { PDFDocument, degrees, rgb, StandardFonts } = PDFLib;
@@ -364,6 +471,21 @@ const toolInfo = {
 };
 
 function scrollToTools(){document.getElementById('tools').scrollIntoView({behavior:'smooth'})}
+function goToTools(){
+  if(document.body.classList.contains('tool-active'))closeActiveTool();
+  else scrollToTools();
+}
+function closeActiveTool(){
+  clearFiles();
+  activeTool=null;
+  document.body.classList.remove('tool-active','has-files');
+  document.querySelectorAll('.card').forEach(x=>x.classList.remove('active-tool-card'));
+  document.getElementById('workspace').classList.remove('show');
+  document.getElementById('dropTitle').textContent='Choose a tool to begin';
+  document.getElementById('dropText').textContent='Pick a tool, then add your document.';
+  document.getElementById('pickBtn').disabled=true;
+  document.getElementById('tools').scrollIntoView({behavior:'smooth',block:'start'});
+}
 function setTab(el){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));el.classList.add('active');activeCat=el.dataset.cat;filterTools()}
 function filterTools(){
   const q=document.getElementById('search').value.toLowerCase().trim();
@@ -375,6 +497,12 @@ function filterTools(){
 }
 function openTool(id){
   activeTool=id; files=[];
+  document.body.classList.add('tool-active');
+  document.body.classList.remove('has-files');
+  document.querySelectorAll('.card').forEach(card=>{
+    const onclick=card.querySelector('button')?.getAttribute('onclick')||'';
+    card.classList.toggle('active-tool-card',onclick===`openTool('${id}')`);
+  });
   document.getElementById('pdfEditor').classList.remove('show');
   document.getElementById('pageOrganizer').classList.remove('show');
   const t=toolInfo[id];
@@ -387,7 +515,7 @@ function openTool(id){
   document.getElementById('wsDesc').textContent=t.desc;
   document.getElementById('workspace').classList.add('show');
   renderFiles(); renderControls(); setStatus('');
-  document.getElementById('dropZone').scrollIntoView({behavior:'smooth',block:'center'});
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 function planned(name){alert(name+' is reserved for the next build. This feature needs a heavier browser engine or a small backend for reliable results.')}
 function pickFiles(){document.getElementById('fileInput').click()}
@@ -424,6 +552,7 @@ function removeFile(i){
 }
 function clearFiles(){
   files=[];
+  document.body.classList.remove('has-files');
   document.getElementById('fileInput').value='';
   renderFiles();
   setStatus('');
@@ -436,6 +565,7 @@ function clearFiles(){
 }
 function size(n){if(n<1024)return n+' B';if(n<1048576)return(n/1024).toFixed(1)+' KB';return(n/1048576).toFixed(2)+' MB'}
 function renderFiles(){
+  document.body.classList.toggle('has-files',files.length>0);
   const el=document.getElementById('fileList');
   if(!files.length){el.innerHTML='<div class="file-row"><div class="file-meta"><strong>No files selected</strong><span>Add file(s) above to continue.</span></div></div>';return}
   el.innerHTML=files.map((f,i)=>{
