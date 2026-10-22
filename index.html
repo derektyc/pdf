@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DTYC PDF v5.3.1 — PDF Toolkit</title>
+<title>DTYC PDF v5.3.2 — PDF Toolkit</title>
 <meta name="description" content="A fast, privacy-first PDF toolkit that runs in your browser.">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -549,7 +549,7 @@ body.tool-active #pageOrganizer.show,body.tool-active #pdfEditor.show{margin-top
 
 </main>
 
-<footer class="footer">DTYC PDF v5.3.1 • Private browser-based PDF tools • Your supported files stay on your device.</footer>
+<footer class="footer">DTYC PDF v5.3.2 • Private browser-based PDF tools • Your supported files stay on your device.</footer>
 
 <script>
 const { PDFDocument, degrees, rgb, StandardFonts } = PDFLib;
@@ -633,16 +633,6 @@ function pickFiles(){
     return;
   }
   input.value='';
-  if(activeTool==='merge'){
-    const suggested=files[0]?.name?.replace(/\.pdf$/i,'')||'merged';
-    c.innerHTML=`
-      <label class="field">Output filename
-        <input id="mergeFileName" type="text" value="${escapeHtml(suggested+'-merged')}" placeholder="merged-document">
-      </label>
-      <button class="primary" onclick="processTool()" ${files.length>=2?'':'disabled'}>Merge & Download</button>
-      <span style="color:var(--muted);font-size:12px;width:100%">Enter the filename you want. “.pdf” will be added automatically if needed.</span>`;
-    return;
-  }
   if(activeTool==='duplexscan'){
     document.getElementById('pickBtn').textContent=!duplexSlots.front?'Select FRONT scan':'Select BACK scan';
   }
@@ -738,6 +728,16 @@ function renderControls(){
   if(activeTool==='rotate') extra='<label class="field">Rotation <select id="angle"><option>90</option><option>180</option><option>270</option></select></label>';
   if(activeTool==='numbers') extra='<label class="field">Start at <input id="startNo" type="number" value="1" min="1"></label>';
   if(activeTool==='watermark') extra='<label class="field">Text <input id="wmText" value="CONFIDENTIAL"></label><label class="field">Opacity <input id="opacity" type="number" value="0.18" min="0.05" max="1" step="0.05"></label>';
+  if(activeTool==='merge'){
+    const suggested=files[0]?.name?.replace(/\.pdf$/i,'')||'merged';
+    c.innerHTML=`
+      <label class="field">Output filename
+        <input id="mergeFileName" type="text" value="${escapeHtml(suggested+'-merged')}" placeholder="merged-document">
+      </label>
+      <button class="primary" onclick="processTool()" ${files.length>=2?'':'disabled'}>Merge & Download</button>
+      <span style="color:var(--muted);font-size:12px;width:100%">Add two or more PDFs, enter the filename you want, then merge. “.pdf” is added automatically.</span>`;
+    return;
+  }
   if(activeTool==='duplexscan'){
     const front=duplexSlots.front,back=duplexSlots.back;
     c.innerHTML=`
