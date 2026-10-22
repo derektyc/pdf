@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DTYC PDF v5 — PDF Toolkit</title>
+<title>DTYC PDF v5.3 — PDF Toolkit</title>
 <meta name="description" content="A fast, privacy-first PDF toolkit that runs in your browser.">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -12,6 +12,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/utif@3.1.0/UTIF.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@zip.js/zip.js@2.20.0/dist/zip.min.js"></script>
 <style>
 :root{
   --bg:#090b11;--surface:#121621;--surface2:#191e2b;--text:#f5f7ff;--muted:#9ba6bd;
@@ -343,6 +344,21 @@ body.tool-active #pageOrganizer.show,body.tool-active #pdfEditor.show{margin-top
   .editor-stage-wrap{padding:15px 8px 48px}
 }
 
+/* ===== DTYC PDF v5.3 — ZIP unlock ===== */
+.zip-unlock-panel{width:100%;display:flex;flex-direction:column;gap:12px}
+.zip-password-box{display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:8px;align-items:end;padding:12px;border:1px solid #2b374a;background:#121925;border-radius:13px}
+.zip-password-box label{display:flex;flex-direction:column;gap:6px;color:#9da8bc;font-size:10px;font-weight:900;letter-spacing:.04em}
+.zip-password-box input{width:100%;border:1px solid #2b374a;background:#0e141e;color:#fff;border-radius:9px;padding:10px 11px}
+.zip-batch-list{display:flex;flex-direction:column;gap:7px}
+.zip-batch-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,280px);gap:10px;align-items:center;padding:10px 11px;border:1px solid #263246;background:#151d2a;border-radius:11px}
+.zip-batch-meta{min-width:0}.zip-batch-meta strong{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.zip-batch-meta span{display:block;color:#8793a8;font-size:10px;margin-top:3px}
+.zip-batch-row input{width:100%;border:1px solid #2c384b;background:#0d131d;color:#fff;border-radius:9px;padding:9px 10px}
+.zip-unlock-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.zip-unlock-note{color:#8f9aaf;font-size:11px;line-height:1.55}
+.zip-progress{display:none;padding:10px 12px;border:1px solid #2b374a;background:#101722;border-radius:10px;color:#c8d1e0;font-size:11px}
+.zip-progress.show{display:block}
+@media(max-width:650px){.zip-password-box{grid-template-columns:1fr}.zip-batch-row{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -412,6 +428,9 @@ body.tool-active #pageOrganizer.show,body.tool-active #pdfEditor.show{margin-top
     </article>
     <article class="card" data-cat="convert" data-name="pdf word docx">
       <span class="tag">WORKS NOW</span><div class="icon">W</div><h3>PDF ↔ Word</h3><p>Convert DOCX to PDF or extract PDF text into an editable DOCX.</p><button onclick="openTool('wordconvert')">Open tool →</button>
+    </article>
+    <article class="card" data-cat="convert" data-name="zip unlock decrypt remove password archive multiple batch">
+      <span class="tag">NEW · V5.3</span><div class="icon">🔓</div><h3>ZIP Unlock</h3><p>Remove ZIP passwords locally. Upload one or many protected ZIP files in the same batch.</p><button onclick="openTool('zipunlock')">Open tool →</button>
     </article>
     <article class="card" data-cat="convert" data-name="ocr scan text pdf">
       <span class="tag soon">PLANNED</span><div class="icon">👁️</div><h3>OCR</h3><p>Recognize text in scans and make documents searchable.</p><button onclick="planned('OCR')">Preview →</button>
@@ -530,7 +549,7 @@ body.tool-active #pageOrganizer.show,body.tool-active #pdfEditor.show{margin-top
 
 </main>
 
-<footer class="footer">DTYC PDF v5.2 • Private browser-based PDF tools • Your supported files stay on your device.</footer>
+<footer class="footer">DTYC PDF v5.3 • Private browser-based PDF tools • Your supported files stay on your device.</footer>
 
 <script>
 const { PDFDocument, degrees, rgb, StandardFonts } = PDFLib;
@@ -553,7 +572,8 @@ const toolInfo = {
   inspect:{name:'PDF Inspector',desc:'Read basic file and PDF metadata without changing the file.',accept:'.pdf',multi:false},
   editor:{name:'Edit PDF',desc:'Edit visually with text, images, highlights, drawing and shapes. Use page thumbnails and simple controls to work through the document.',accept:'.pdf',multi:false},
   compress:{name:'Smart Compress',desc:'Reduce PDF size. Stronger settings create smaller files but may reduce visual quality.',accept:'.pdf',multi:false},
-  wordconvert:{name:'PDF ↔ Word',desc:'Upload a PDF to create an editable DOCX, or upload a DOCX to create a PDF.',accept:'.pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document',multi:false}
+  wordconvert:{name:'PDF ↔ Word',desc:'Upload a PDF to create an editable DOCX, or upload a DOCX to create a PDF.',accept:'.pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document',multi:false},
+  zipunlock:{name:'ZIP Unlock',desc:'Remove password protection from ZIP archives you have the password for. Upload one or multiple ZIPs and process them locally.',accept:'.zip,application/zip,application/x-zip-compressed',multi:true}
 };
 
 function scrollToTools(){document.getElementById('tools').scrollIntoView({behavior:'smooth'})}
@@ -629,6 +649,7 @@ function fileMatchesTool(f,t){
   if(t.accept==='.pdf') return f.type==='application/pdf'||name.endsWith('.pdf');
   if(t.accept.includes('.docx')) return f.type==='application/pdf'||name.endsWith('.pdf')||name.endsWith('.docx')||f.type.includes('wordprocessingml');
   if(t.accept.includes('.tif')) return name.endsWith('.tif')||name.endsWith('.tiff')||f.type==='image/tiff';
+  if(t.accept.includes('.zip')) return name.endsWith('.zip')||['application/zip','application/x-zip-compressed'].includes(f.type);
   if(t.accept.includes('image/jpeg')) return ['image/jpeg','image/png'].includes(f.type)||/\.(jpe?g|png)$/i.test(name);
   return true;
 }
@@ -743,6 +764,29 @@ function renderControls(){
         <p>${front&&back?'Checking page order…':'Add both PDFs to preview the final sequence.'}</p>
       </div>`;
     if(front&&back)setTimeout(updateDuplexPreview,0);
+    return;
+  }
+  if(activeTool==='zipunlock'){
+    const rows=files.map((f,i)=>`
+      <div class="zip-batch-row">
+        <div class="zip-batch-meta"><strong>${escapeHtml(f.name)}</strong><span>${size(f.size)}</span></div>
+        <input id="zipPw-${i}" type="password" autocomplete="off" placeholder="Different password for this ZIP (optional)">
+      </div>`).join('');
+    c.innerHTML=`
+      <div class="zip-unlock-panel">
+        <div class="zip-password-box">
+          <label>SHARED PASSWORD
+            <input id="zipSharedPassword" type="password" autocomplete="off" placeholder="Password used by all or most ZIP files">
+          </label>
+          <button class="secondary" type="button" onclick="toggleZipPasswords()">Show passwords</button>
+        </div>
+        <div class="zip-batch-list">${rows||'<div class="zip-unlock-note">Add one or more ZIP files above.</div>'}</div>
+        <div class="zip-unlock-actions">
+          <button class="primary" onclick="unlockZipBatch()" ${files.length?'':'disabled'}>🔓 Unlock ${files.length>1?files.length+' ZIPs':'ZIP'}</button>
+          <span class="zip-unlock-note">The shared password is used by default. Enter a different password beside any file that uses another one.</span>
+        </div>
+        <div id="zipUnlockProgress" class="zip-progress"></div>
+      </div>`;
     return;
   }
   if(activeTool==='organize'){
@@ -1509,6 +1553,109 @@ function dataUrlToUint8(dataUrl){
   const bytes=new Uint8Array(binary.length);
   for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
   return bytes;
+}
+
+// ---- ZIP Unlock ----
+function toggleZipPasswords(){
+  const inputs=[document.getElementById('zipSharedPassword'),...files.map((_,i)=>document.getElementById('zipPw-'+i))].filter(Boolean);
+  const show=inputs.some(x=>x.type==='password');
+  inputs.forEach(x=>x.type=show?'text':'password');
+  const btn=[...document.querySelectorAll('#toolControls button')].find(x=>/passwords/i.test(x.textContent||''));
+  if(btn)btn.textContent=show?'Hide passwords':'Show passwords';
+}
+function setZipProgress(text){
+  const el=document.getElementById('zipUnlockProgress');if(!el)return;
+  el.textContent=text||'';el.classList.toggle('show',!!text);
+}
+function downloadBlob(blob,name){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=name;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),2500);
+}
+function unlockedZipName(name){
+  const base=String(name||'archive.zip').replace(/\.zip$/i,'');
+  return base+'-unlocked.zip';
+}
+function sanitizeZipPath(name){
+  return String(name||'').replace(/\\/g,'/').split('/').filter(part=>part&&part!=='.'&&part!=='..').join('/');
+}
+async function unlockOneZip(file,password,onProgress){
+  if(!window.zip?.ZipReader)throw new Error('ZIP unlock engine did not load. Refresh the page and try again.');
+  const reader=new zip.ZipReader(new zip.BlobReader(file));
+  let entries=[];
+  try{
+    entries=await reader.getEntries();
+    if(!entries.length)throw new Error('The ZIP file is empty.');
+    const writer=new zip.ZipWriter(new zip.BlobWriter('application/zip'));
+    let completed=0;
+    try{
+      for(const entry of entries){
+        const cleanName=sanitizeZipPath(entry.filename);
+        if(!cleanName)continue;
+        if(entry.directory){
+          await writer.add(cleanName.endsWith('/')?cleanName:cleanName+'/',undefined,{directory:true,lastModDate:entry.lastModDate});
+        }else{
+          let data;
+          try{
+            data=await entry.getData(new zip.Uint8ArrayWriter(),{
+              password:password||undefined,
+              checkCrc32:true,
+              checkAuthenticationCode:true
+            });
+          }catch(err){
+            const msg=String(err?.message||err||'');
+            if(/password|encrypted|authentication/i.test(msg))throw new Error('Wrong or missing password for '+file.name+'.');
+            throw err;
+          }
+          await writer.add(cleanName,new zip.Uint8ArrayReader(data),{lastModDate:entry.lastModDate,level:6});
+        }
+        completed++;
+        onProgress?.(completed,entries.length,cleanName);
+        await new Promise(resolve=>setTimeout(resolve,0));
+      }
+      return await writer.close();
+    }catch(err){
+      try{await writer.close()}catch(_){}
+      throw err;
+    }
+  }finally{
+    try{await reader.close()}catch(_){}
+  }
+}
+async function unlockZipBatch(){
+  if(!files.length)return setStatus('Add at least one ZIP file first.','err');
+  const shared=document.getElementById('zipSharedPassword')?.value||'';
+  const outputs=[];
+  try{
+    setStatus('Unlocking ZIP file(s) locally…');
+    for(let i=0;i<files.length;i++){
+      const file=files[i];
+      const password=document.getElementById('zipPw-'+i)?.value||shared;
+      setZipProgress(`Unlocking ${i+1} of ${files.length}: ${file.name}`);
+      const blob=await unlockOneZip(file,password,(done,total,name)=>{
+        setZipProgress(`Unlocking ${i+1} of ${files.length}: ${file.name} · ${done}/${total} entries · ${name}`);
+      });
+      outputs.push({name:unlockedZipName(file.name),blob});
+    }
+    if(outputs.length===1){
+      downloadBlob(outputs[0].blob,outputs[0].name);
+      setZipProgress('');
+      setStatus('ZIP unlocked successfully. The downloaded ZIP is no longer password-protected.','ok');
+      return;
+    }
+    setZipProgress('Packaging '+outputs.length+' unlocked ZIP files into one batch download…');
+    const bundle=new JSZip();
+    outputs.forEach(x=>bundle.file(x.name,x.blob));
+    const batchBlob=await bundle.generateAsync({type:'blob',compression:'STORE'});
+    downloadBlob(batchBlob,'DTYC-unlocked-ZIPs.zip');
+    setZipProgress('');
+    setStatus(outputs.length+' ZIP files unlocked successfully. The downloaded batch contains each unlocked ZIP.','ok');
+  }catch(err){
+    console.error(err);
+    setZipProgress('');
+    setStatus(err?.message||'Could not unlock the ZIP file(s).','err');
+  }
 }
 
 // ---- Smart Compress ----
