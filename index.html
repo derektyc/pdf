@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DTYC PDF v5.3 — PDF Toolkit</title>
+<title>DTYC PDF v5.3.1 — PDF Toolkit</title>
 <meta name="description" content="A fast, privacy-first PDF toolkit that runs in your browser.">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -549,7 +549,7 @@ body.tool-active #pageOrganizer.show,body.tool-active #pdfEditor.show{margin-top
 
 </main>
 
-<footer class="footer">DTYC PDF v5.3 • Private browser-based PDF tools • Your supported files stay on your device.</footer>
+<footer class="footer">DTYC PDF v5.3.1 • Private browser-based PDF tools • Your supported files stay on your device.</footer>
 
 <script>
 const { PDFDocument, degrees, rgb, StandardFonts } = PDFLib;
@@ -633,6 +633,16 @@ function pickFiles(){
     return;
   }
   input.value='';
+  if(activeTool==='merge'){
+    const suggested=files[0]?.name?.replace(/\.pdf$/i,'')||'merged';
+    c.innerHTML=`
+      <label class="field">Output filename
+        <input id="mergeFileName" type="text" value="${escapeHtml(suggested+'-merged')}" placeholder="merged-document">
+      </label>
+      <button class="primary" onclick="processTool()" ${files.length>=2?'':'disabled'}>Merge & Download</button>
+      <span style="color:var(--muted);font-size:12px;width:100%">Enter the filename you want. “.pdf” will be added automatically if needed.</span>`;
+    return;
+  }
   if(activeTool==='duplexscan'){
     document.getElementById('pickBtn').textContent=!duplexSlots.front?'Select FRONT scan':'Select BACK scan';
   }
@@ -783,7 +793,7 @@ function renderControls(){
         <div class="zip-batch-list">${rows||'<div class="zip-unlock-note">Add one or more ZIP files above.</div>'}</div>
         <div class="zip-unlock-actions">
           <button class="primary" onclick="unlockZipBatch()" ${files.length?'':'disabled'}>🔓 Unlock ${files.length>1?files.length+' ZIPs':'ZIP'}</button>
-          <span class="zip-unlock-note">The shared password is used by default. Enter a different password beside any file that uses another one.</span>
+          <span class="zip-unlock-note">The shared password is used by default. Enter a different password beside any file that uses another one. Multiple ZIPs download separately—no extra batch ZIP or wrapper folder.</span>
         </div>
         <div id="zipUnlockProgress" class="zip-progress"></div>
       </div>`;
@@ -938,11 +948,23 @@ async function arrangeDuplexScans(){
   setStatus(`Duplex PDF created: ${out.getPageCount()} pages arranged front/back in sequence.`,'ok');
 }
 
+function safeDownloadBaseName(value,fallback='merged'){
+  let name=String(value||'').trim().replace(/\.pdf$/i,'');
+  name=name.replace(/[<>:"/\\|?*\x00-\x1F]/g,'-').replace(/[. ]+$/g,'').trim();
+  return name||fallback;
+}
 async function mergePDF(){
   if(files.length<2)throw new Error('Add at least two PDF files to merge.');
   const out=await PDFDocument.create();
-  for(const f of files){const d=await PDFDocument.load(await f.arrayBuffer());const pages=await out.copyPages(d,d.getPageIndices());pages.forEach(p=>out.addPage(p))}
-  download(await out.save(),'merged.pdf');setStatus('Merged successfully. Your download has started.','ok')
+  for(const f of files){
+    const d=await PDFDocument.load(await f.arrayBuffer());
+    const pages=await out.copyPages(d,d.getPageIndices());
+    pages.forEach(p=>out.addPage(p));
+  }
+  const base=safeDownloadBaseName(document.getElementById('mergeFileName')?.value,'merged');
+  const fileName=base+'.pdf';
+  download(await out.save(),fileName);
+  setStatus('Merged successfully as '+fileName+'.','ok');
 }
 async function extractPDF(removing){
   const src=await PDFDocument.load(await files[0].arrayBuffer());
@@ -1644,13 +1666,13 @@ async function unlockZipBatch(){
       setStatus('ZIP unlocked successfully. The downloaded ZIP is no longer password-protected.','ok');
       return;
     }
-    setZipProgress('Packaging '+outputs.length+' unlocked ZIP files into one batch download…');
-    const bundle=new JSZip();
-    outputs.forEach(x=>bundle.file(x.name,x.blob));
-    const batchBlob=await bundle.generateAsync({type:'blob',compression:'STORE'});
-    downloadBlob(batchBlob,'DTYC-unlocked-ZIPs.zip');
+    setZipProgress('Starting '+outputs.length+' unlocked ZIP downloads…');
+    for(let i=0;i<outputs.length;i++){
+      downloadBlob(outputs[i].blob,outputs[i].name);
+      if(i<outputs.length-1)await new Promise(resolve=>setTimeout(resolve,450));
+    }
     setZipProgress('');
-    setStatus(outputs.length+' ZIP files unlocked successfully. The downloaded batch contains each unlocked ZIP.','ok');
+    setStatus(outputs.length+' ZIP files unlocked successfully and downloaded separately. Your browser may ask you to allow multiple downloads.','ok');
   }catch(err){
     console.error(err);
     setZipProgress('');
