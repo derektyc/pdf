@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DTYC PDF v5.3.2 — PDF Toolkit</title>
+<title>DTYC PDF v5.4 — PDF Toolkit</title>
 <meta name="description" content="A fast, privacy-first PDF toolkit that runs in your browser.">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -351,7 +351,7 @@ body.tool-active #pageOrganizer.show,body.tool-active #pdfEditor.show{margin-top
 .zip-password-box input{width:100%;border:1px solid #2b374a;background:#0e141e;color:#fff;border-radius:9px;padding:10px 11px}
 .zip-batch-list{display:flex;flex-direction:column;gap:7px}
 .zip-batch-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,280px);gap:10px;align-items:center;padding:10px 11px;border:1px solid #263246;background:#151d2a;border-radius:11px}
-.zip-batch-meta{min-width:0}.zip-batch-meta strong{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.zip-batch-meta span{display:block;color:#8793a8;font-size:10px;margin-top:3px}
+.zip-batch-meta{min-width:0}.zip-batch-meta strong{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.zip-batch-meta span{display:block;color:#8793a8;font-size:10px;margin-top:3px}.unlock-type{display:inline-flex;margin-right:6px;padding:2px 6px;border:1px solid #344158;border-radius:999px;color:#b9c3d5;font-size:9px;font-weight:900}
 .zip-batch-row input{width:100%;border:1px solid #2c384b;background:#0d131d;color:#fff;border-radius:9px;padding:9px 10px}
 .zip-unlock-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .zip-unlock-note{color:#8f9aaf;font-size:11px;line-height:1.55}
@@ -429,8 +429,8 @@ body.tool-active #pageOrganizer.show,body.tool-active #pdfEditor.show{margin-top
     <article class="card" data-cat="convert" data-name="pdf word docx">
       <span class="tag">WORKS NOW</span><div class="icon">W</div><h3>PDF ↔ Word</h3><p>Convert DOCX to PDF or extract PDF text into an editable DOCX.</p><button onclick="openTool('wordconvert')">Open tool →</button>
     </article>
-    <article class="card" data-cat="convert" data-name="zip unlock decrypt remove password archive multiple batch">
-      <span class="tag">NEW · V5.3</span><div class="icon">🔓</div><h3>ZIP Unlock</h3><p>Remove ZIP passwords locally. Upload one or many protected ZIP files in the same batch.</p><button onclick="openTool('zipunlock')">Open tool →</button>
+    <article class="card" data-cat="convert" data-name="unlock file zip pdf decrypt remove password archive document multiple batch">
+      <span class="tag">UPDATED · V5.4</span><div class="icon">🔓</div><h3>Unlock Files</h3><p>Remove passwords from ZIP or PDF files locally. Mixed batches are supported.</p><button onclick="openTool('fileunlock')">Open tool →</button>
     </article>
     <article class="card" data-cat="convert" data-name="ocr scan text pdf">
       <span class="tag soon">PLANNED</span><div class="icon">👁️</div><h3>OCR</h3><p>Recognize text in scans and make documents searchable.</p><button onclick="planned('OCR')">Preview →</button>
@@ -549,7 +549,7 @@ body.tool-active #pageOrganizer.show,body.tool-active #pdfEditor.show{margin-top
 
 </main>
 
-<footer class="footer">DTYC PDF v5.3.2 • Private browser-based PDF tools • Your supported files stay on your device.</footer>
+<footer class="footer">DTYC PDF v5.4 • Private browser-based PDF tools • Your supported files stay on your device.</footer>
 
 <script>
 const { PDFDocument, degrees, rgb, StandardFonts } = PDFLib;
@@ -573,7 +573,7 @@ const toolInfo = {
   editor:{name:'Edit PDF',desc:'Edit visually with text, images, highlights, drawing and shapes. Use page thumbnails and simple controls to work through the document.',accept:'.pdf',multi:false},
   compress:{name:'Smart Compress',desc:'Reduce PDF size. Stronger settings create smaller files but may reduce visual quality.',accept:'.pdf',multi:false},
   wordconvert:{name:'PDF ↔ Word',desc:'Upload a PDF to create an editable DOCX, or upload a DOCX to create a PDF.',accept:'.pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document',multi:false},
-  zipunlock:{name:'ZIP Unlock',desc:'Remove password protection from ZIP archives you have the password for. Upload one or multiple ZIPs and process them locally.',accept:'.zip,application/zip,application/x-zip-compressed',multi:true}
+  fileunlock:{name:'Unlock Files',desc:'Remove password protection from ZIP or PDF files you have the password for. Upload one or multiple files, including a mixed ZIP/PDF batch.',accept:'.zip,.pdf,application/zip,application/x-zip-compressed,application/pdf',multi:true}
 };
 
 function scrollToTools(){document.getElementById('tools').scrollIntoView({behavior:'smooth'})}
@@ -649,6 +649,7 @@ function fileMatchesTool(f,t){
   if(t.accept==='.pdf') return f.type==='application/pdf'||name.endsWith('.pdf');
   if(t.accept.includes('.docx')) return f.type==='application/pdf'||name.endsWith('.pdf')||name.endsWith('.docx')||f.type.includes('wordprocessingml');
   if(t.accept.includes('.tif')) return name.endsWith('.tif')||name.endsWith('.tiff')||f.type==='image/tiff';
+  if(t.accept.includes('.zip')&&t.accept.includes('.pdf')) return name.endsWith('.zip')||name.endsWith('.pdf')||['application/zip','application/x-zip-compressed','application/pdf'].includes(f.type);
   if(t.accept.includes('.zip')) return name.endsWith('.zip')||['application/zip','application/x-zip-compressed'].includes(f.type);
   if(t.accept.includes('image/jpeg')) return ['image/jpeg','image/png'].includes(f.type)||/\.(jpe?g|png)$/i.test(name);
   return true;
@@ -776,24 +777,27 @@ function renderControls(){
     if(front&&back)setTimeout(updateDuplexPreview,0);
     return;
   }
-  if(activeTool==='zipunlock'){
-    const rows=files.map((f,i)=>`
+  if(activeTool==='fileunlock'){
+    const rows=files.map((f,i)=>{
+      const isPdf=/\.pdf$/i.test(f.name)||f.type==='application/pdf';
+      return `
       <div class="zip-batch-row">
-        <div class="zip-batch-meta"><strong>${escapeHtml(f.name)}</strong><span>${size(f.size)}</span></div>
-        <input id="zipPw-${i}" type="password" autocomplete="off" placeholder="Different password for this ZIP (optional)">
-      </div>`).join('');
+        <div class="zip-batch-meta"><strong><span class="unlock-type">${isPdf?'PDF':'ZIP'}</span>${escapeHtml(f.name)}</strong><span>${size(f.size)}</span></div>
+        <input id="unlockPw-${i}" type="password" autocomplete="off" placeholder="Different password for this file (optional)">
+      </div>`;
+    }).join('');
     c.innerHTML=`
       <div class="zip-unlock-panel">
         <div class="zip-password-box">
           <label>SHARED PASSWORD
-            <input id="zipSharedPassword" type="password" autocomplete="off" placeholder="Password used by all or most ZIP files">
+            <input id="unlockSharedPassword" type="password" autocomplete="off" placeholder="Password used by all or most files">
           </label>
-          <button class="secondary" type="button" onclick="toggleZipPasswords()">Show passwords</button>
+          <button class="secondary" type="button" onclick="toggleUnlockPasswords()">Show passwords</button>
         </div>
-        <div class="zip-batch-list">${rows||'<div class="zip-unlock-note">Add one or more ZIP files above.</div>'}</div>
+        <div class="zip-batch-list">${rows||'<div class="zip-unlock-note">Add one or more ZIP/PDF files above.</div>'}</div>
         <div class="zip-unlock-actions">
-          <button class="primary" onclick="unlockZipBatch()" ${files.length?'':'disabled'}>🔓 Unlock ${files.length>1?files.length+' ZIPs':'ZIP'}</button>
-          <span class="zip-unlock-note">The shared password is used by default. Enter a different password beside any file that uses another one. Multiple ZIPs download separately—no extra batch ZIP or wrapper folder.</span>
+          <button class="primary" onclick="unlockFilesBatch()" ${files.length?'':'disabled'}>🔓 Unlock ${files.length>1?files.length+' files':'file'}</button>
+          <span class="zip-unlock-note">ZIPs are decrypted and rebuilt normally. PDFs are opened with the password and rebuilt as unlocked visual copies, so selectable text, links or form fields may be flattened. Multiple outputs download separately.</span>
         </div>
         <div id="zipUnlockProgress" class="zip-progress"></div>
       </div>`;
@@ -1577,9 +1581,9 @@ function dataUrlToUint8(dataUrl){
   return bytes;
 }
 
-// ---- ZIP Unlock ----
-function toggleZipPasswords(){
-  const inputs=[document.getElementById('zipSharedPassword'),...files.map((_,i)=>document.getElementById('zipPw-'+i))].filter(Boolean);
+// ---- ZIP + PDF Unlock ----
+function toggleUnlockPasswords(){
+  const inputs=[document.getElementById('unlockSharedPassword'),...files.map((_,i)=>document.getElementById('unlockPw-'+i))].filter(Boolean);
   const show=inputs.some(x=>x.type==='password');
   inputs.forEach(x=>x.type=show?'text':'password');
   const btn=[...document.querySelectorAll('#toolControls button')].find(x=>/passwords/i.test(x.textContent||''));
@@ -1645,38 +1649,92 @@ async function unlockOneZip(file,password,onProgress){
     try{await reader.close()}catch(_){}
   }
 }
-async function unlockZipBatch(){
-  if(!files.length)return setStatus('Add at least one ZIP file first.','err');
-  const shared=document.getElementById('zipSharedPassword')?.value||'';
+function unlockedPdfName(name){
+  const base=String(name||'document.pdf').replace(/\.pdf$/i,'');
+  return base+'-unlocked.pdf';
+}
+async function unlockOnePdf(file,password,onProgress){
+  if(!window.pdfjsLib)throw new Error('PDF unlock engine did not load. Refresh the page and try again.');
+  const bytes=await file.arrayBuffer();
+  let jsDoc;
+  try{
+    jsDoc=await pdfjsLib.getDocument({
+      data:new Uint8Array(bytes),
+      password:password,
+      disableWorker:true
+    }).promise;
+  }catch(err){
+    const msg=String(err?.message||err||'');
+    if(err?.name==='PasswordException'||/password/i.test(msg)){
+      throw new Error('Wrong or missing password for '+file.name+'.');
+    }
+    throw err;
+  }
+  const out=await PDFDocument.create();
+  try{
+    for(let p=1;p<=jsDoc.numPages;p++){
+      onProgress?.(p-1,jsDoc.numPages,'Page '+p);
+      const page=await jsDoc.getPage(p);
+      const base=page.getViewport({scale:1});
+      const renderScale=1.5;
+      const vp=page.getViewport({scale:renderScale});
+      const canvas=document.createElement('canvas');
+      canvas.width=Math.max(1,Math.floor(vp.width));
+      canvas.height=Math.max(1,Math.floor(vp.height));
+      const ctx=canvas.getContext('2d',{alpha:false});
+      ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);
+      await page.render({canvasContext:ctx,viewport:vp}).promise;
+      const jpgBytes=dataUrlToUint8(canvas.toDataURL('image/jpeg',.94));
+      const jpg=await out.embedJpg(jpgBytes);
+      const outPage=out.addPage([base.width,base.height]);
+      outPage.drawImage(jpg,{x:0,y:0,width:base.width,height:base.height});
+      canvas.width=1;canvas.height=1;
+      onProgress?.(p,jsDoc.numPages,'Page '+p);
+      await new Promise(resolve=>setTimeout(resolve,0));
+    }
+    return new Blob([await out.save({useObjectStreams:true})],{type:'application/pdf'});
+  }finally{
+    try{await jsDoc.destroy()}catch(_){}
+  }
+}
+
+async function unlockFilesBatch(){
+  if(!files.length)return setStatus('Add at least one ZIP or PDF file first.','err');
+  const shared=document.getElementById('unlockSharedPassword')?.value||'';
   const outputs=[];
   try{
-    setStatus('Unlocking ZIP file(s) locally…');
+    setStatus('Unlocking file(s) locally…');
     for(let i=0;i<files.length;i++){
       const file=files[i];
-      const password=document.getElementById('zipPw-'+i)?.value||shared;
+      const password=document.getElementById('unlockPw-'+i)?.value||shared;
+      const isPdf=/\.pdf$/i.test(file.name)||file.type==='application/pdf';
       setZipProgress(`Unlocking ${i+1} of ${files.length}: ${file.name}`);
-      const blob=await unlockOneZip(file,password,(done,total,name)=>{
-        setZipProgress(`Unlocking ${i+1} of ${files.length}: ${file.name} · ${done}/${total} entries · ${name}`);
-      });
-      outputs.push({name:unlockedZipName(file.name),blob});
+      let blob,name;
+      if(isPdf){
+        blob=await unlockOnePdf(file,password,(done,total,label)=>{
+          setZipProgress(`Unlocking ${i+1} of ${files.length}: ${file.name} · ${done}/${total} pages · ${label}`);
+        });
+        name=unlockedPdfName(file.name);
+      }else{
+        blob=await unlockOneZip(file,password,(done,total,label)=>{
+          setZipProgress(`Unlocking ${i+1} of ${files.length}: ${file.name} · ${done}/${total} entries · ${label}`);
+        });
+        name=unlockedZipName(file.name);
+      }
+      outputs.push({name,blob});
     }
-    if(outputs.length===1){
-      downloadBlob(outputs[0].blob,outputs[0].name);
-      setZipProgress('');
-      setStatus('ZIP unlocked successfully. The downloaded ZIP is no longer password-protected.','ok');
-      return;
-    }
-    setZipProgress('Starting '+outputs.length+' unlocked ZIP downloads…');
+
+    setZipProgress('Starting '+outputs.length+' unlocked file download'+(outputs.length===1?'':'s')+'…');
     for(let i=0;i<outputs.length;i++){
       downloadBlob(outputs[i].blob,outputs[i].name);
       if(i<outputs.length-1)await new Promise(resolve=>setTimeout(resolve,450));
     }
     setZipProgress('');
-    setStatus(outputs.length+' ZIP files unlocked successfully and downloaded separately. Your browser may ask you to allow multiple downloads.','ok');
+    setStatus(outputs.length+' file'+(outputs.length===1?'':'s')+' unlocked successfully and downloaded separately.','ok');
   }catch(err){
     console.error(err);
     setZipProgress('');
-    setStatus(err?.message||'Could not unlock the ZIP file(s).','err');
+    setStatus(err?.message||'Could not unlock the file(s).','err');
   }
 }
 
