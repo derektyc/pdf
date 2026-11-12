@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DTYC PDF v5.6 — PDF Toolkit</title>
+<title>DTYC PDF v5.6.1 — PDF Toolkit</title>
 <meta name="description" content="A fast, privacy-first PDF toolkit that runs in your browser.">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -552,7 +552,7 @@ body.tool-active #pageOrganizer.show,body.tool-active #pdfEditor.show{margin-top
 
 </main>
 
-<footer class="footer">DTYC PDF v5.6 • Private browser-based PDF tools • Your supported files stay on your device.</footer>
+<footer class="footer">DTYC PDF v5.6.1 • Private browser-based PDF tools • Your supported files stay on your device.</footer>
 
 <script>
 const { PDFDocument, degrees, rgb, StandardFonts } = PDFLib;
@@ -691,34 +691,7 @@ function removeFile(i){
   }
   files.splice(i,1);
   renderFiles();
-  if(activeTool==='zipextract'){
-    const rows=files.map((f,i)=>{
-      const is7z=/\.7z$/i.test(f.name)||f.type==='application/x-7z-compressed';
-      return `
-      <div class="zip-batch-row">
-        <div class="zip-batch-meta"><strong><span class="unlock-type">${is7z?'7Z':'ZIP'}</span>${escapeHtml(f.name)}</strong><span>${size(f.size)}</span></div>
-        <input id="extractPw-${i}" type="password" autocomplete="off" placeholder="Password if this archive is protected (optional)">
-      </div>`;
-    }).join('');
-    const folderSupported='showDirectoryPicker' in window;
-    c.innerHTML=`
-      <div class="zip-unlock-panel">
-        <div class="zip-password-box">
-          <label>SHARED PASSWORD
-            <input id="extractSharedPassword" type="password" autocomplete="off" placeholder="Password used by all or most archives (optional)">
-          </label>
-          <button class="secondary" type="button" onclick="toggleExtractPasswords()">Show passwords</button>
-        </div>
-        <div class="zip-batch-list">${rows||'<div class="zip-unlock-note">Add one or more ZIP or 7Z archives above.</div>'}</div>
-        <div class="zip-unlock-actions">
-          <button class="primary" onclick="extractZipBatchToFolder()" ${files.length&&folderSupported?'':'disabled'}>📂 Extract to Folder</button>
-          <button class="secondary" onclick="downloadExtractedBatchZip()" ${files.length?'':'disabled'}>Download combined ZIP</button>
-          <span class="zip-unlock-note">${folderSupported?'Choose a destination folder and everything will be extracted directly into it.':'Direct folder extraction is not supported by this browser, so use the combined ZIP option.'} ZIP and 7Z are supported. No extra folder is created for each uploaded archive; folders already inside the archive are preserved. Duplicate filenames are renamed automatically.</span>
-        </div>
-        <div id="zipUnlockProgress" class="zip-progress"></div>
-      </div>`;
-    return;
-  }
+  renderControls();
   if(activeTool==='organize'){
     if(files.length)initPageOrganizer();
     else{document.getElementById('pageOrganizer').classList.remove('show');resetOrganizerState()}
@@ -831,6 +804,34 @@ function renderControls(){
         <div class="zip-unlock-actions">
           <button class="primary" onclick="unlockFilesBatch()" ${files.length?'':'disabled'}>🔓 Unlock ${files.length>1?files.length+' files':'file'}</button>
           <span class="zip-unlock-note">ZIPs are decrypted and rebuilt normally. PDFs are opened with the password and rebuilt as unlocked visual copies, so selectable text, links or form fields may be flattened. Multiple outputs download separately.</span>
+        </div>
+        <div id="zipUnlockProgress" class="zip-progress"></div>
+      </div>`;
+    return;
+  }
+  if(activeTool==='zipextract'){
+    const rows=files.map((f,i)=>{
+      const is7z=/\.7z$/i.test(f.name)||f.type==='application/x-7z-compressed';
+      return `
+      <div class="zip-batch-row">
+        <div class="zip-batch-meta"><strong><span class="unlock-type">${is7z?'7Z':'ZIP'}</span>${escapeHtml(f.name)}</strong><span>${size(f.size)}</span></div>
+        <input id="extractPw-${i}" type="password" autocomplete="off" placeholder="Password if this archive is protected (optional)">
+      </div>`;
+    }).join('');
+    const folderSupported='showDirectoryPicker' in window;
+    c.innerHTML=`
+      <div class="zip-unlock-panel">
+        <div class="zip-password-box">
+          <label>SHARED PASSWORD
+            <input id="extractSharedPassword" type="password" autocomplete="off" placeholder="Password used by all or most archives (optional)">
+          </label>
+          <button class="secondary" type="button" onclick="toggleExtractPasswords()">Show passwords</button>
+        </div>
+        <div class="zip-batch-list">${rows||'<div class="zip-unlock-note">Add one or more ZIP or 7Z archives above.</div>'}</div>
+        <div class="zip-unlock-actions">
+          <button class="primary" onclick="extractZipBatchToFolder()" ${files.length&&folderSupported?'':'disabled'}>📂 Extract to Folder</button>
+          <button class="secondary" onclick="downloadExtractedBatchZip()" ${files.length?'':'disabled'}>Download combined ZIP</button>
+          <span class="zip-unlock-note">${folderSupported?'Choose a destination folder and everything will be extracted directly into it.':'Direct folder extraction is not supported by this browser, so use the combined ZIP option.'} ZIP and 7Z are supported. No extra folder is created for each uploaded archive; folders already inside the archive are preserved. Duplicate filenames are renamed automatically.</span>
         </div>
         <div id="zipUnlockProgress" class="zip-progress"></div>
       </div>`;
