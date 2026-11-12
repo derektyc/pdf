@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DTYC PDF v5.6.2 — PDF Toolkit</title>
+<title>DTYC PDF v5.6.3 — PDF Toolkit</title>
 <meta name="description" content="A fast, privacy-first PDF toolkit that runs in your browser.">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -552,7 +552,7 @@ body.tool-active #pageOrganizer.show,body.tool-active #pdfEditor.show{margin-top
 
 </main>
 
-<footer class="footer">DTYC PDF v5.6.2 • Private browser-based PDF tools • Your supported files stay on your device.</footer>
+<footer class="footer">DTYC PDF v5.6.3 • Private browser-based PDF tools • Your supported files stay on your device.</footer>
 
 <script>
 const { PDFDocument, degrees, rgb, StandardFonts } = PDFLib;
@@ -1869,7 +1869,7 @@ self.onmessage=async(event)=>{
       const result=sevenZip.callMain(args);
       if(Number.isFinite(result))exitCode=Number(result);
     }catch(err){
-      const all=[...logs,String(err?.message||err||'')].join('\n');
+      const all=[...logs,String(err?.message||err||'')].join('\\n');
       if(/wrong password|password is incorrect|headers error|data error/i.test(all)){
         throw new Error('Wrong or missing password for '+file.name+'.');
       }
@@ -1878,7 +1878,7 @@ self.onmessage=async(event)=>{
 
     const entries=collectPaths(FS,outputDir);
     if(!entries.some(x=>!x.directory)){
-      const all=logs.join('\n');
+      const all=logs.join('\\n');
       if(/wrong password|password is incorrect|headers error|data error/i.test(all)){
         throw new Error('Wrong or missing password for '+file.name+'.');
       }
