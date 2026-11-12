@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DTYC PDF v5.6.1 — PDF Toolkit</title>
+<title>DTYC PDF v5.6.2 — PDF Toolkit</title>
 <meta name="description" content="A fast, privacy-first PDF toolkit that runs in your browser.">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -552,7 +552,7 @@ body.tool-active #pageOrganizer.show,body.tool-active #pdfEditor.show{margin-top
 
 </main>
 
-<footer class="footer">DTYC PDF v5.6.1 • Private browser-based PDF tools • Your supported files stay on your device.</footer>
+<footer class="footer">DTYC PDF v5.6.2 • Private browser-based PDF tools • Your supported files stay on your device.</footer>
 
 <script>
 const { PDFDocument, degrees, rgb, StandardFonts } = PDFLib;
@@ -831,7 +831,7 @@ function renderControls(){
         <div class="zip-unlock-actions">
           <button class="primary" onclick="extractZipBatchToFolder()" ${files.length&&folderSupported?'':'disabled'}>📂 Extract to Folder</button>
           <button class="secondary" onclick="downloadExtractedBatchZip()" ${files.length?'':'disabled'}>Download combined ZIP</button>
-          <span class="zip-unlock-note">${folderSupported?'Choose a destination folder and everything will be extracted directly into it.':'Direct folder extraction is not supported by this browser, so use the combined ZIP option.'} ZIP and 7Z are supported. No extra folder is created for each uploaded archive; folders already inside the archive are preserved. Duplicate filenames are renamed automatically.</span>
+          <span class="zip-unlock-note">${folderSupported?'Choose a destination folder and everything will be extracted directly into it. Large 7Z archives use isolated workers so memory is released between archives.':'Direct folder extraction is not supported by this browser, so use the combined ZIP option.'} ZIP and 7Z are supported. No extra folder is created for each uploaded archive; folders already inside the archive are preserved. Duplicate filenames are renamed automatically. For very large 7Z files, “Extract to Folder” is strongly recommended over “Download combined ZIP”.</span>
         </div>
         <div id="zipUnlockProgress" class="zip-progress"></div>
       </div>`;
@@ -1799,6 +1799,196 @@ function collectSevenZipFs(FS,root,relative='',out=[]){
   }
   return out;
 }
+function sevenZipWorkerSource(){
+  return `
+let ackResolve=null;
+self.onmessage=async(event)=>{
+  const msg=event.data||{};
+  if(msg.type==='ack'){
+    if(ackResolve){const r=ackResolve;ackResolve=null;r();}
+    return;
+  }
+  if(msg.type!=='start')return;
+
+  const file=msg.file;
+  const password=msg.password||'';
+  const moduleUrl='https://cdn.jsdelivr.net/npm/7z-wasm@1.2.0/7zz.es6.js';
+  const wasmUrl='https://cdn.jsdelivr.net/npm/7z-wasm@1.2.0/7zz.wasm';
+  const logs=[];
+  let sevenZip=null;
+
+  function waitAck(){
+    return new Promise(resolve=>{ackResolve=resolve;});
+  }
+  function cleanPath(name){
+    return String(name||'').replace(/\\\\/g,'/').split('/').filter(p=>p&&p!=='.'&&p!=='..').join('/');
+  }
+  function collectPaths(FS,root,relative='',out=[]){
+    const names=FS.readdir(root).filter(x=>x!=='.'&&x!=='..');
+    for(const name of names){
+      const full=root+'/'+name;
+      const rel=relative?relative+'/'+name:name;
+      const stat=FS.stat(full);
+      if(FS.isDir(stat.mode)){
+        out.push({path:rel+'/',full,directory:true,size:0});
+        collectPaths(FS,full,rel,out);
+      }else{
+        out.push({path:rel,full,directory:false,size:stat.size});
+      }
+    }
+    return out;
+  }
+
+  try{
+    self.postMessage({type:'progress',text:'Starting 7-Zip engine…'});
+    const mod=await import(moduleUrl);
+    const SevenZip=mod.default;
+    sevenZip=await SevenZip({
+      locateFile:(name)=>name.endsWith('.wasm')?wasmUrl:name,
+      print:(line)=>logs.push(String(line||'')),
+      printErr:(line)=>logs.push(String(line||''))
+    });
+
+    const FS=sevenZip.FS;
+    const inputDir='/input';
+    const outputDir='/output';
+    try{FS.mkdir(inputDir)}catch(_){}
+    try{FS.mkdir(outputDir)}catch(_){}
+
+    const workerFs=sevenZip.WORKERFS||FS.filesystems?.WORKERFS;
+    if(!workerFs)throw new Error('This 7-Zip build does not expose WORKERFS.');
+
+    FS.mount(workerFs,{files:[file]},inputDir);
+    const archivePath=inputDir+'/'+file.name;
+    const args=['x',archivePath,'-o'+outputDir,'-y','-bb0'];
+    if(password)args.push('-p'+password);
+
+    self.postMessage({type:'progress',text:'Decompressing '+file.name+'…'});
+    let exitCode=0;
+    try{
+      const result=sevenZip.callMain(args);
+      if(Number.isFinite(result))exitCode=Number(result);
+    }catch(err){
+      const all=[...logs,String(err?.message||err||'')].join('\n');
+      if(/wrong password|password is incorrect|headers error|data error/i.test(all)){
+        throw new Error('Wrong or missing password for '+file.name+'.');
+      }
+      throw err;
+    }
+
+    const entries=collectPaths(FS,outputDir);
+    if(!entries.some(x=>!x.directory)){
+      const all=logs.join('\n');
+      if(/wrong password|password is incorrect|headers error|data error/i.test(all)){
+        throw new Error('Wrong or missing password for '+file.name+'.');
+      }
+      if(exitCode)throw new Error('7-Zip could not extract '+file.name+'.');
+      throw new Error('No files were found inside '+file.name+'.');
+    }
+
+    let done=0;
+    for(const entry of entries){
+      const path=cleanPath(entry.path);
+      if(!path){done++;continue;}
+      if(entry.directory){
+        self.postMessage({type:'directory',path});
+      }else{
+        const stat=FS.stat(entry.full);
+        const node=FS.lookupPath(entry.full).node;
+        const contents=node.contents;
+        const byteOffset=contents.byteOffset||0;
+        const byteLength=stat.size;
+        const buffer=contents.buffer;
+        try{FS.unlink(entry.full)}catch(_){}
+        self.postMessage({
+          type:'file',
+          path,
+          buffer,
+          byteOffset,
+          byteLength,
+          done:done+1,
+          total:entries.length
+        },[buffer]);
+        await waitAck();
+      }
+      done++;
+      self.postMessage({type:'count',done,total:entries.length,path});
+    }
+
+    try{FS.unmount(inputDir)}catch(_){}
+    self.postMessage({type:'done',fileCount:entries.filter(x=>!x.directory).length});
+  }catch(err){
+    self.postMessage({type:'error',message:String(err?.message||err||'7-Zip extraction failed.')});
+  }
+};`;
+}
+
+async function extractSevenZipToFolderWorker(file,password,root,used,batchIndex,batchTotal){
+  const workerUrl=URL.createObjectURL(new Blob([sevenZipWorkerSource()],{type:'text/javascript'}));
+  const worker=new Worker(workerUrl,{type:'module'});
+  let written=0;
+
+  try{
+    return await new Promise((resolve,reject)=>{
+      let settled=false;
+      const fail=(err)=>{
+        if(settled)return;
+        settled=true;
+        reject(err instanceof Error?err:new Error(String(err||'7-Zip extraction failed.')));
+      };
+
+      worker.onerror=(event)=>fail(new Error(event.message||'7-Zip worker failed.'));
+      worker.onmessage=async(event)=>{
+        const msg=event.data||{};
+        try{
+          if(msg.type==='progress'){
+            setZipProgress(`Archive ${batchIndex+1}/${batchTotal}: ${msg.text}`);
+            return;
+          }
+          if(msg.type==='directory'){
+            const clean=sanitizeZipPath(msg.path);
+            if(clean)await createExtractedDirectory(root,clean);
+            return;
+          }
+          if(msg.type==='file'){
+            const clean=sanitizeZipPath(msg.path);
+            if(!clean){worker.postMessage({type:'ack'});return;}
+            const outPath=uniqueExtractPath(clean,used);
+            const view=new Uint8Array(msg.buffer,msg.byteOffset||0,msg.byteLength??msg.buffer.byteLength);
+            setZipProgress(`Archive ${batchIndex+1}/${batchTotal}: writing ${outPath} · ${msg.done||''}/${msg.total||''}`);
+            await writeExtractedFile(root,outPath,view);
+            written++;
+            worker.postMessage({type:'ack'});
+            return;
+          }
+          if(msg.type==='count'){
+            setZipProgress(`Archive ${batchIndex+1}/${batchTotal}: ${file.name} · ${msg.done}/${msg.total}`);
+            return;
+          }
+          if(msg.type==='error'){
+            fail(new Error(msg.message||'7-Zip extraction failed.'));
+            return;
+          }
+          if(msg.type==='done'){
+            if(settled)return;
+            settled=true;
+            resolve(written);
+          }
+        }catch(err){
+          fail(err);
+        }
+      };
+
+      worker.postMessage({type:'start',file,password});
+    });
+  }finally{
+    worker.terminate();
+    URL.revokeObjectURL(workerUrl);
+    await new Promise(resolve=>setTimeout(resolve,50));
+  }
+}
+
+// Legacy in-page extractor retained for the combined-ZIP fallback.
 async function extractSevenZipEntries(file,password,onProgress){
   const SevenZip=await getSevenZipFactory();
   const logs=[];
@@ -1923,21 +2113,10 @@ async function extractZipBatchToFolder(){
       const password=extractionPasswordFor(i);
 
       if(isSevenZipFile(file)){
-        const entries=await extractSevenZipEntries(file,password,(done,total,name)=>{
-          setZipProgress(`Extracting ${i+1}/${files.length}: ${file.name} · ${done}/${total} · ${name}`);
-        });
-        for(const entry of entries){
-          const clean=sanitizeZipPath(entry.path);
-          if(!clean)continue;
-          if(entry.directory){
-            await createExtractedDirectory(root,clean);
-          }else{
-            const outPath=uniqueExtractPath(clean,used);
-            await writeExtractedFile(root,outPath,entry.data);
-            totalFiles++;
-          }
-          await new Promise(resolve=>setTimeout(resolve,0));
-        }
+        const count=await extractSevenZipToFolderWorker(file,password,root,used,i,files.length);
+        totalFiles+=count;
+        setZipProgress(`Finished ${file.name}. Releasing 7-Zip memory before the next archive…`);
+        await new Promise(resolve=>setTimeout(resolve,120));
         continue;
       }
 
@@ -1969,7 +2148,10 @@ async function extractZipBatchToFolder(){
   }catch(err){
     console.error(err);
     setZipProgress('');
-    setStatus(err?.message||'Could not extract the archive(s).','err');
+    const msg=String(err?.message||'Could not extract the archive(s).');
+    setStatus(/array buffer allocation failed|out of memory|memory/i.test(msg)
+      ?'Browser memory was exhausted by one archive. Try that archive by itself; very large single extracted files can exceed browser memory limits even with isolated workers.'
+      :msg,'err');
   }
 }
 async function downloadExtractedBatchZip(){
