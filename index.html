@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DTYC PDF v5.5 — PDF Toolkit</title>
+<title>DTYC PDF v5.6 — PDF Toolkit</title>
 <meta name="description" content="A fast, privacy-first PDF toolkit that runs in your browser.">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -432,8 +432,8 @@ body.tool-active #pageOrganizer.show,body.tool-active #pdfEditor.show{margin-top
     <article class="card" data-cat="convert" data-name="unlock file zip pdf decrypt remove password archive document multiple batch">
       <span class="tag">UPDATED · V5.4</span><div class="icon">🔓</div><h3>Unlock Files</h3><p>Remove passwords from ZIP or PDF files locally. Mixed batches are supported.</p><button onclick="openTool('fileunlock')">Open tool →</button>
     </article>
-    <article class="card" data-cat="convert" data-name="extract zip unzip multiple batch archive folder">
-      <span class="tag">NEW · V5.5</span><div class="icon">📦</div><h3>Extract ZIPs</h3><p>Extract several ZIP files at once directly into one destination folder.</p><button onclick="openTool('zipextract')">Open tool →</button>
+    <article class="card" data-cat="convert" data-name="extract zip 7z 7zip unzip multiple batch archive folder">
+      <span class="tag">UPDATED · V5.6</span><div class="icon">📦</div><h3>Extract Archives</h3><p>Extract multiple ZIP or 7Z archives at once directly into one destination folder.</p><button onclick="openTool('zipextract')">Open tool →</button>
     </article>
     <article class="card" data-cat="convert" data-name="ocr scan text pdf">
       <span class="tag soon">PLANNED</span><div class="icon">👁️</div><h3>OCR</h3><p>Recognize text in scans and make documents searchable.</p><button onclick="planned('OCR')">Preview →</button>
@@ -552,7 +552,7 @@ body.tool-active #pageOrganizer.show,body.tool-active #pdfEditor.show{margin-top
 
 </main>
 
-<footer class="footer">DTYC PDF v5.5 • Private browser-based PDF tools • Your supported files stay on your device.</footer>
+<footer class="footer">DTYC PDF v5.6 • Private browser-based PDF tools • Your supported files stay on your device.</footer>
 
 <script>
 const { PDFDocument, degrees, rgb, StandardFonts } = PDFLib;
@@ -577,7 +577,7 @@ const toolInfo = {
   compress:{name:'Smart Compress',desc:'Reduce PDF size. Stronger settings create smaller files but may reduce visual quality.',accept:'.pdf',multi:false},
   wordconvert:{name:'PDF ↔ Word',desc:'Upload a PDF to create an editable DOCX, or upload a DOCX to create a PDF.',accept:'.pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document',multi:false},
   fileunlock:{name:'Unlock Files',desc:'Remove password protection from ZIP or PDF files you have the password for. Upload one or multiple files, including a mixed ZIP/PDF batch.',accept:'.zip,.pdf,application/zip,application/x-zip-compressed,application/pdf',multi:true},
-  zipextract:{name:'Extract ZIPs',desc:'Extract one or multiple ZIP archives into the same destination. No extra folder is added for each uploaded ZIP.',accept:'.zip,application/zip,application/x-zip-compressed',multi:true}
+  zipextract:{name:'Extract Archives',desc:'Extract one or multiple ZIP or 7Z archives into the same destination. No extra folder is added for each uploaded archive.',accept:'.zip,.7z,application/zip,application/x-zip-compressed,application/x-7z-compressed',multi:true}
 };
 
 function scrollToTools(){document.getElementById('tools').scrollIntoView({behavior:'smooth'})}
@@ -654,6 +654,7 @@ function fileMatchesTool(f,t){
   if(t.accept.includes('.docx')) return f.type==='application/pdf'||name.endsWith('.pdf')||name.endsWith('.docx')||f.type.includes('wordprocessingml');
   if(t.accept.includes('.tif')) return name.endsWith('.tif')||name.endsWith('.tiff')||f.type==='image/tiff';
   if(t.accept.includes('.zip')&&t.accept.includes('.pdf')) return name.endsWith('.zip')||name.endsWith('.pdf')||['application/zip','application/x-zip-compressed','application/pdf'].includes(f.type);
+  if(t.accept.includes('.7z')) return name.endsWith('.zip')||name.endsWith('.7z')||['application/zip','application/x-zip-compressed','application/x-7z-compressed'].includes(f.type);
   if(t.accept.includes('.zip')) return name.endsWith('.zip')||['application/zip','application/x-zip-compressed'].includes(f.type);
   if(t.accept.includes('image/jpeg')) return ['image/jpeg','image/png'].includes(f.type)||/\.(jpe?g|png)$/i.test(name);
   return true;
@@ -691,25 +692,28 @@ function removeFile(i){
   files.splice(i,1);
   renderFiles();
   if(activeTool==='zipextract'){
-    const rows=files.map((f,i)=>`
+    const rows=files.map((f,i)=>{
+      const is7z=/\.7z$/i.test(f.name)||f.type==='application/x-7z-compressed';
+      return `
       <div class="zip-batch-row">
-        <div class="zip-batch-meta"><strong><span class="unlock-type">ZIP</span>${escapeHtml(f.name)}</strong><span>${size(f.size)}</span></div>
-        <input id="extractPw-${i}" type="password" autocomplete="off" placeholder="Password if this ZIP is protected (optional)">
-      </div>`).join('');
+        <div class="zip-batch-meta"><strong><span class="unlock-type">${is7z?'7Z':'ZIP'}</span>${escapeHtml(f.name)}</strong><span>${size(f.size)}</span></div>
+        <input id="extractPw-${i}" type="password" autocomplete="off" placeholder="Password if this archive is protected (optional)">
+      </div>`;
+    }).join('');
     const folderSupported='showDirectoryPicker' in window;
     c.innerHTML=`
       <div class="zip-unlock-panel">
         <div class="zip-password-box">
           <label>SHARED PASSWORD
-            <input id="extractSharedPassword" type="password" autocomplete="off" placeholder="Password used by all or most ZIP files (optional)">
+            <input id="extractSharedPassword" type="password" autocomplete="off" placeholder="Password used by all or most archives (optional)">
           </label>
           <button class="secondary" type="button" onclick="toggleExtractPasswords()">Show passwords</button>
         </div>
-        <div class="zip-batch-list">${rows||'<div class="zip-unlock-note">Add one or more ZIP files above.</div>'}</div>
+        <div class="zip-batch-list">${rows||'<div class="zip-unlock-note">Add one or more ZIP or 7Z archives above.</div>'}</div>
         <div class="zip-unlock-actions">
           <button class="primary" onclick="extractZipBatchToFolder()" ${files.length&&folderSupported?'':'disabled'}>📂 Extract to Folder</button>
           <button class="secondary" onclick="downloadExtractedBatchZip()" ${files.length?'':'disabled'}>Download combined ZIP</button>
-          <span class="zip-unlock-note">${folderSupported?'Choose a destination folder and everything will be extracted directly into it.':'Direct folder extraction is not supported by this browser, so use the combined ZIP option.'} No extra folder is created for each uploaded archive; folders already inside the ZIPs are preserved. Duplicate filenames are renamed automatically.</span>
+          <span class="zip-unlock-note">${folderSupported?'Choose a destination folder and everything will be extracted directly into it.':'Direct folder extraction is not supported by this browser, so use the combined ZIP option.'} ZIP and 7Z are supported. No extra folder is created for each uploaded archive; folders already inside the archive are preserved. Duplicate filenames are renamed automatically.</span>
         </div>
         <div id="zipUnlockProgress" class="zip-progress"></div>
       </div>`;
@@ -1767,7 +1771,73 @@ async function unlockFilesBatch(){
   }
 }
 
-// ---- Batch ZIP Extract ----
+// ---- 7-Zip WASM support ----
+let sevenZipFactoryPromise=null;
+async function getSevenZipFactory(){
+  if(!sevenZipFactoryPromise){
+    sevenZipFactoryPromise=import('https://cdn.jsdelivr.net/npm/7z-wasm@1.2.0/7zz.es6.js').then(mod=>mod.default);
+  }
+  return await sevenZipFactoryPromise;
+}
+function isSevenZipFile(file){
+  return /\.7z$/i.test(file?.name||'')||file?.type==='application/x-7z-compressed';
+}
+function collectSevenZipFs(FS,root,relative='',out=[]){
+  const names=FS.readdir(root).filter(x=>x!=='.'&&x!=='..');
+  for(const name of names){
+    const full=root+'/'+name;
+    const rel=relative?relative+'/'+name:name;
+    const stat=FS.stat(full);
+    if(FS.isDir(stat.mode)){
+      out.push({path:rel+'/',directory:true});
+      collectSevenZipFs(FS,full,rel,out);
+    }else{
+      const bytes=FS.readFile(full);
+      out.push({path:rel,directory:false,data:new Uint8Array(bytes)});
+    }
+  }
+  return out;
+}
+async function extractSevenZipEntries(file,password,onProgress){
+  const SevenZip=await getSevenZipFactory();
+  const logs=[];
+  const sevenZip=await SevenZip({
+    locateFile:(name)=>name.endsWith('.wasm')
+      ?'https://cdn.jsdelivr.net/npm/7z-wasm@1.2.0/7zz.wasm'
+      :name,
+    print:(msg)=>logs.push(String(msg||'')),
+    printErr:(msg)=>logs.push(String(msg||''))
+  });
+  const archiveName='/input.7z';
+  const outputDir='/output';
+  try{sevenZip.FS.mkdir(outputDir)}catch(_){}
+  sevenZip.FS.writeFile(archiveName,new Uint8Array(await file.arrayBuffer()));
+  const args=['x',archiveName,'-o'+outputDir,'-y','-bb0'];
+  if(password)args.push('-p'+password);
+  let exitCode=0;
+  try{
+    const result=sevenZip.callMain(args);
+    if(Number.isFinite(result))exitCode=Number(result);
+  }catch(err){
+    const text=[...logs,String(err?.message||err||'')].join('\n');
+    if(/wrong password|password is incorrect|headers error|data error/i.test(text)){
+      throw new Error('Wrong or missing password for '+file.name+'.');
+    }
+    throw err;
+  }
+  const entries=collectSevenZipFs(sevenZip.FS,outputDir);
+  if(!entries.some(x=>!x.directory)){
+    const logText=logs.join('\n');
+    if(/wrong password|password is incorrect|headers error|data error/i.test(logText)){
+      throw new Error('Wrong or missing password for '+file.name+'.');
+    }
+    if(exitCode)throw new Error('7-Zip could not extract '+file.name+'.');
+  }
+  entries.forEach((entry,i)=>onProgress?.(i+1,entries.length,entry.path));
+  return entries;
+}
+
+// ---- Batch ZIP / 7Z Extract ----
 function toggleExtractPasswords(){
   const inputs=[document.getElementById('extractSharedPassword'),...files.map((_,i)=>document.getElementById('extractPw-'+i))].filter(Boolean);
   const show=inputs.some(x=>x.type==='password');
@@ -1833,7 +1903,7 @@ async function createExtractedDirectory(root,path){
   if(parts.length)await getDirectoryForPath(root,parts);
 }
 async function extractZipBatchToFolder(){
-  if(!files.length)return setStatus('Add at least one ZIP file first.','err');
+  if(!files.length)return setStatus('Add at least one ZIP or 7Z archive first.','err');
   if(!window.showDirectoryPicker)return setStatus('This browser does not support direct folder extraction. Use “Download combined ZIP” instead.','err');
   let root;
   try{
@@ -1846,10 +1916,30 @@ async function extractZipBatchToFolder(){
   const used=new Set();
   let totalFiles=0;
   try{
-    setStatus('Extracting ZIP files locally…');
+    setStatus('Extracting archives locally…');
     for(let i=0;i<files.length;i++){
       const file=files[i];
       const password=extractionPasswordFor(i);
+
+      if(isSevenZipFile(file)){
+        const entries=await extractSevenZipEntries(file,password,(done,total,name)=>{
+          setZipProgress(`Extracting ${i+1}/${files.length}: ${file.name} · ${done}/${total} · ${name}`);
+        });
+        for(const entry of entries){
+          const clean=sanitizeZipPath(entry.path);
+          if(!clean)continue;
+          if(entry.directory){
+            await createExtractedDirectory(root,clean);
+          }else{
+            const outPath=uniqueExtractPath(clean,used);
+            await writeExtractedFile(root,outPath,entry.data);
+            totalFiles++;
+          }
+          await new Promise(resolve=>setTimeout(resolve,0));
+        }
+        continue;
+      }
+
       const reader=new zip.ZipReader(new zip.BlobReader(file));
       try{
         const entries=await reader.getEntries();
@@ -1878,19 +1968,43 @@ async function extractZipBatchToFolder(){
   }catch(err){
     console.error(err);
     setZipProgress('');
-    setStatus(err?.message||'Could not extract the ZIP file(s).','err');
+    setStatus(err?.message||'Could not extract the archive(s).','err');
   }
 }
 async function downloadExtractedBatchZip(){
-  if(!files.length)return setStatus('Add at least one ZIP file first.','err');
+  if(!files.length)return setStatus('Add at least one ZIP or 7Z archive first.','err');
   const writer=new zip.ZipWriter(new zip.BlobWriter('application/zip'));
   const used=new Set();
   let totalFiles=0;
   try{
-    setStatus('Extracting ZIP contents locally…');
+    setStatus('Extracting archive contents locally…');
     for(let i=0;i<files.length;i++){
       const file=files[i];
       const password=extractionPasswordFor(i);
+
+      if(isSevenZipFile(file)){
+        const entries=await extractSevenZipEntries(file,password,(done,total,name)=>{
+          setZipProgress(`Extracting ${i+1}/${files.length}: ${file.name} · ${done}/${total} · ${name}`);
+        });
+        for(const entry of entries){
+          const clean=sanitizeZipPath(entry.path);
+          if(!clean)continue;
+          if(entry.directory){
+            const dirPath=clean.endsWith('/')?clean:clean+'/';
+            if(!used.has(dirPath.toLowerCase())){
+              used.add(dirPath.toLowerCase());
+              await writer.add(dirPath,undefined,{directory:true});
+            }
+          }else{
+            const outPath=uniqueExtractPath(clean,used);
+            await writer.add(outPath,new zip.Uint8ArrayReader(entry.data),{level:6});
+            totalFiles++;
+          }
+          await new Promise(resolve=>setTimeout(resolve,0));
+        }
+        continue;
+      }
+
       const reader=new zip.ZipReader(new zip.BlobReader(file));
       try{
         const entries=await reader.getEntries();
@@ -1926,7 +2040,7 @@ async function downloadExtractedBatchZip(){
     console.error(err);
     try{await writer.close()}catch(_){}
     setZipProgress('');
-    setStatus(err?.message||'Could not extract the ZIP file(s).','err');
+    setStatus(err?.message||'Could not extract the archive(s).','err');
   }
 }
 
